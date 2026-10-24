@@ -12,6 +12,7 @@ node_modules/
 .agents/
 .codex/
 .aws/
+artifacts/
 dashboard/models/*
 !dashboard/models/.gitkeep
 dashboard/reports/*
