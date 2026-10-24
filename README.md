@@ -10,10 +10,9 @@ Analisis kalimat menggabungkan sentimen IndoBERT dengan topik terdekat dari mode
 data/          Dataset mentah, hasil preprocessing, kamus, prediksi historis
 notebooks/     Notebook penelitian beserta output aslinya
 dashboard/     Frontend, backend, skrip, pengujian, model, laporan
-docs/          Arsitektur dan catatan verifikasi
 ```
 
-Lihat [arsitektur proyek](docs/architecture.md), [keterangan data](data/README.md), dan [urutan notebook](notebooks/README.md).
+Lihat [keterangan data](data/README.md) dan [urutan notebook](notebooks/README.md).
 
 ## Jalankan
 

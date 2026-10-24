@@ -284,7 +284,7 @@ Tes memeriksa data asli, output notebook, urutan label, cleaning, pemotongan tok
 
 Prediksi berjalan setelah tombol **Analisis kalimat** ditekan, dengan batas 2.000 karakter, satu inferensi aktif per proses backend, dan 30 percobaan per menit per proses. Request berlebih menerima HTTP 429; model yang sedang sibuk menerima HTTP 503. Kedua respons menyertakan `Retry-After`.
 
-Frontend mengikuti tema sistem. Aksen warna dibatasi pada tindakan utama dan kategori data. Lihat [catatan desain](../docs/design-notes.md) serta [pemeriksaan keamanan](../docs/security.md).
+Frontend mengikuti tema sistem. Aksen warna dibatasi pada tindakan utama dan kategori data.
 
 ## Referensi
 
