@@ -1,0 +1,67 @@
+[
+  {
+    "before": "preprocessed_final_ikn_test.tsv",
+    "after": "data/processed/preprocessed_final_ikn_test.tsv",
+    "sha256": "9d99bafa75ace6936c43816fb55067f4b9b55e2db10a25313fc9602df2fd86a9"
+  },
+  {
+    "before": "Kamus_colloquial-indonesian-lexicon.csv",
+    "after": "data/external/Kamus_colloquial-indonesian-lexicon.csv",
+    "sha256": "a8323c7bd8002622d7b4eb6232fc9843e91c8301e91cee87905e8609d3c7a8c3"
+  },
+  {
+    "before": "Sentimen_Analysis_IKN_IndoBERT.ipynb",
+    "after": "notebooks/Sentimen_Analysis_IKN_IndoBERT.ipynb",
+    "sha256": "4aae20b21f9044328aef691864d9d2219ad270c1a35abb99bb54e70cb91cdb3c"
+  },
+  {
+    "before": "preprocessed_final_ikn_val.tsv",
+    "after": "data/processed/preprocessed_final_ikn_val.tsv",
+    "sha256": "dfe3807d30af121106ee102da7c6f38d19844fb677a61e4c6bbd7db63131622a"
+  },
+  {
+    "before": "Kamus_id.stopwords.02.01.2016 custom.txt",
+    "after": "data/external/Kamus_id.stopwords.02.01.2016 custom.txt",
+    "sha256": "84c348590408e89870055dc5ae371c2b8b0fc200e0de5ef30579a378554f524a"
+  },
+  {
+    "before": "Topic_Modelling_of_IKN.ipynb",
+    "after": "notebooks/Topic_Modelling_of_IKN.ipynb",
+    "sha256": "28e99ff91cb2c4e47714ca953625f1a1e0ac8a1e2d1af44be5599936b87e1a40"
+  },
+  {
+    "before": "final_ikn_train_602020.csv",
+    "after": "data/raw/final_ikn_train_602020.csv",
+    "sha256": "57f9a6669a3ae8781e3a29742f65c83b610623c4638e1ce2fee88567f9f6152f"
+  },
+  {
+    "before": "test_with_predictions new.csv",
+    "after": "data/predictions/test_with_predictions new.csv",
+    "sha256": "0958ecf3c562e5649b90bda3cf1d375adf03145812cf612a60b0d6612180c56c"
+  },
+  {
+    "before": "Preprocessing_Datasets_IKN.ipynb",
+    "after": "notebooks/Preprocessing_Datasets_IKN.ipynb",
+    "sha256": "446999fed76297072e827f26619b8b1f4cbf8e860c82704746ff5cd666c00748"
+  },
+  {
+    "before": "final_ikn_val_602020.csv",
+    "after": "data/raw/final_ikn_val_602020.csv",
+    "sha256": "f9e8b8d1f38ee989128cdb1e4dc0d0b6b47ea35fca317defbc8061f5113bc255"
+  },
+  {
+    "before": "preprocessed_final_ikn_train.tsv",
+    "after": "data/processed/preprocessed_final_ikn_train.tsv",
+    "sha256": "5a6ff286c3bc5886328e0934d0555a63dc8fa1ce631fca33ddf1b0cceaa3c144"
+  },
+  {
+    "before": "test_with_predictions_and_coherence.csv",
+    "after": "data/predictions/test_with_predictions_and_coherence.csv",
+    "sha256": "007ada24f2b5002d0cf145cd712c535fe7f2a8e9e37d6dc0dcdbe4e1cb69e1b5"
+  },
+  {
+    "before": "final_ikn_test_602020.csv",
+    "after": "data/raw/final_ikn_test_602020.csv",
+    "sha256": "fd5acb4852fd98562910ffbe9b151a0c62b11ce3912edc4b61738c90b5dfbae7"
+  }
+]

@@ -1,0 +1,3 @@
+-r requirements.txt
+top2vec>=1.0.34,<2
+gensim>=4.3,<5

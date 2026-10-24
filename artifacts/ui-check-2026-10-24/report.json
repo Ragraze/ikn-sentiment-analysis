@@ -1,0 +1,199 @@
+{
+  "checkedAt": "2026-10-24T16:33:22.986Z",
+  "baseUrl": "http://localhost:3000",
+  "pages": [
+    {
+      "viewport": "desktop",
+      "route": "/",
+      "status": 200,
+      "h1": [
+        "Dashboard penelitian"
+      ],
+      "horizontalOverflow": false,
+      "geometry": {
+        "viewportWidth": 1440,
+        "documentWidth": 1440,
+        "bodyWidth": 1440
+      },
+      "errors": [],
+      "apiFailures": [],
+      "screenshot": "desktop-dashboard.png"
+    },
+    {
+      "viewport": "desktop",
+      "route": "/analysis",
+      "status": 200,
+      "h1": [
+        "Analisis kalimat"
+      ],
+      "horizontalOverflow": false,
+      "geometry": {
+        "viewportWidth": 1440,
+        "documentWidth": 1440,
+        "bodyWidth": 1440
+      },
+      "errors": [],
+      "apiFailures": [],
+      "screenshot": "desktop-analysis.png"
+    },
+    {
+      "viewport": "desktop",
+      "route": "/dataset",
+      "status": 200,
+      "h1": [
+        "Dataset opini"
+      ],
+      "horizontalOverflow": false,
+      "geometry": {
+        "viewportWidth": 1440,
+        "documentWidth": 1440,
+        "bodyWidth": 1440
+      },
+      "errors": [],
+      "apiFailures": [],
+      "screenshot": "desktop-dataset.png"
+    },
+    {
+      "viewport": "desktop",
+      "route": "/topics",
+      "status": 200,
+      "h1": [
+        "Pemodelan topik"
+      ],
+      "horizontalOverflow": false,
+      "geometry": {
+        "viewportWidth": 1440,
+        "documentWidth": 1440,
+        "bodyWidth": 1440
+      },
+      "errors": [],
+      "apiFailures": [],
+      "screenshot": "desktop-topics.png"
+    },
+    {
+      "viewport": "desktop",
+      "route": "/evaluation",
+      "status": 200,
+      "h1": [
+        "Evaluasi model"
+      ],
+      "horizontalOverflow": false,
+      "geometry": {
+        "viewportWidth": 1440,
+        "documentWidth": 1440,
+        "bodyWidth": 1440
+      },
+      "errors": [],
+      "apiFailures": [],
+      "screenshot": "desktop-evaluation.png"
+    },
+    {
+      "viewport": "mobile",
+      "route": "/",
+      "status": 200,
+      "h1": [
+        "Dashboard penelitian"
+      ],
+      "horizontalOverflow": false,
+      "geometry": {
+        "viewportWidth": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390
+      },
+      "errors": [],
+      "apiFailures": [],
+      "screenshot": "mobile-dashboard.png"
+    },
+    {
+      "viewport": "mobile",
+      "route": "/analysis",
+      "status": 200,
+      "h1": [
+        "Analisis kalimat"
+      ],
+      "horizontalOverflow": false,
+      "geometry": {
+        "viewportWidth": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390
+      },
+      "errors": [],
+      "apiFailures": [],
+      "screenshot": "mobile-analysis.png"
+    },
+    {
+      "viewport": "mobile",
+      "route": "/dataset",
+      "status": 200,
+      "h1": [
+        "Dataset opini"
+      ],
+      "horizontalOverflow": false,
+      "geometry": {
+        "viewportWidth": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390
+      },
+      "errors": [],
+      "apiFailures": [],
+      "screenshot": "mobile-dataset.png"
+    },
+    {
+      "viewport": "mobile",
+      "route": "/topics",
+      "status": 200,
+      "h1": [
+        "Pemodelan topik"
+      ],
+      "horizontalOverflow": false,
+      "geometry": {
+        "viewportWidth": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390
+      },
+      "errors": [],
+      "apiFailures": [],
+      "screenshot": "mobile-topics.png"
+    },
+    {
+      "viewport": "mobile",
+      "route": "/evaluation",
+      "status": 200,
+      "h1": [
+        "Evaluasi model"
+      ],
+      "horizontalOverflow": false,
+      "geometry": {
+        "viewportWidth": 390,
+        "documentWidth": 390,
+        "bodyWidth": 390
+      },
+      "errors": [],
+      "apiFailures": [],
+      "screenshot": "mobile-evaluation.png"
+    }
+  ],
+  "interactions": [
+    {
+      "viewport": "desktop",
+      "sampleButton": true,
+      "clear": true,
+      "undo": true
+    },
+    {
+      "viewport": "desktop",
+      "draftAfterNavigation": true
+    },
+    {
+      "viewport": "mobile",
+      "sampleButton": true,
+      "clear": true,
+      "undo": true
+    },
+    {
+      "viewport": "mobile",
+      "menuOpen": true,
+      "menuEscape": true
+    }
+  ]
+}

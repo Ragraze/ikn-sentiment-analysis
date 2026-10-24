@@ -1,0 +1,21 @@
+{
+  "source": "Sentimen_Analysis_IKN_IndoBERT.ipynb",
+  "source_sha256": "4aae20b21f9044328aef691864d9d2219ad270c1a35abb99bb54e70cb91cdb3c",
+  "base_model": "indobenchmark/indobert-base-p1",
+  "model_class": "BertForSequenceClassification",
+  "tokenizer_class": "BertTokenizer",
+  "id2label": {"0": "positive", "1": "neutral", "2": "negative"},
+  "preprocessing": "notebook",
+  "tokenization": "indonlu-prefix",
+  "max_length": 512,
+  "batch_size": 32,
+  "learning_rate": 0.000003,
+  "epochs": 5,
+  "seed": 42,
+  "optimizer": "Adam",
+  "datasets": {
+    "train": "preprocessed_final_ikn_train.tsv",
+    "val": "preprocessed_final_ikn_val.tsv",
+    "test": "preprocessed_final_ikn_test.tsv"
+  }
+}
