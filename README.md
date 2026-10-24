@@ -1,4 +1,4 @@
-# IKN Sentiment Lab
+# IKN Sentiment Lab [Thesis]
 
 Dashboard penelitian opini tentang Ibu Kota Nusantara. Next.js menampilkan eksplorasi dataset, klasifikasi sentimen IndoBERT, evaluasi model, dan hasil pemodelan topik Top2Vec melalui API Flask.
 
