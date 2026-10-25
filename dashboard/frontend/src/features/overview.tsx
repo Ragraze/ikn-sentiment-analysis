@@ -21,9 +21,9 @@ export function Overview() {
   return (
     <>
       <dl className="summary-strip" aria-label="Ringkasan dataset" aria-busy={loading}>
-        <div className="summary-total"><dt>Total opini</dt><dd>{data ? number(data.total) : loading ? '…' : 'Belum tersedia'}</dd><span>Dataset penelitian IKN</span></div>
+        <div className="summary-total"><dt>Total opini</dt><dd>{data ? number(data.total) : loading ? '…' : 'Belum tersedia'}</dd><span>Dataset penelitian IKN</span><div className="summary-meter" aria-hidden="true"><span style={{ width: data?.total ? '100%' : '0%' }} /></div></div>
         {(['train', 'val', 'test'] as Split[]).map(key => (
-          <div key={key}><dt>Data {splitNames[key].toLowerCase()}</dt><dd>{data ? number(data.splits[key].count) : loading ? '…' : 'Belum tersedia'}</dd><span>{data && data.total > 0 ? `${percent(data.splits[key].count / data.total)} dari seluruh opini` : 'Pembagian dataset'}</span></div>
+          <div key={key}><dt>Data {splitNames[key].toLowerCase()}</dt><dd>{data ? number(data.splits[key].count) : loading ? '…' : 'Belum tersedia'}</dd><span>{data && data.total > 0 ? `${percent(data.splits[key].count / data.total)} dari seluruh opini` : 'Pembagian dataset'}</span><div className="summary-meter" aria-hidden="true"><span style={{ width: data && data.total > 0 ? `${data.splits[key].count / data.total * 100}%` : '0%' }} /></div></div>
         ))}
       </dl>
       <div className="overview-charts">

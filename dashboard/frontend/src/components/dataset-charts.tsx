@@ -33,7 +33,7 @@ export function SentimentDonut({ counts }: { counts: Counts }) {
         {sentiments.map(label => (
           <div key={label}>
             <dt><span className={`legend-swatch ${label}`} aria-hidden="true" />{names[label]}</dt>
-            <dd><strong>{number(counts[label])}</strong><span>{percent(counts[label] / total)}</span></dd>
+            <dd><strong>{percent(counts[label] / total)}</strong><span>{number(counts[label])} opini</span></dd>
           </div>
         ))}
       </dl>

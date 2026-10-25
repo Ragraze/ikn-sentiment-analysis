@@ -59,7 +59,7 @@ export function DatasetExplorer() {
         {busy || error || !data?.total ? <button className="button secondary" type="button" disabled>Ekspor CSV</button> : <a className="button secondary" href={download} download>Ekspor CSV</a>}
       </div>
       <div className="table-controls">
-        <label className="search-field" htmlFor="opinion-search">Cari opini<input id="opinion-search" type="search" value={query} onChange={event => setQuery(event.target.value)} maxLength={200} placeholder="Kata atau potongan kalimat" aria-describedby="dataset-search-help" /></label>
+        <label className="search-field" htmlFor="opinion-search">Cari opini<span className="search-input"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="m16 16 4.5 4.5" /></svg><input id="opinion-search" type="search" value={query} onChange={event => setQuery(event.target.value)} maxLength={200} placeholder="Kata atau potongan kalimat" aria-describedby="dataset-search-help" /></span></label>
         <label htmlFor="dataset-split">Bagian dataset<select id="dataset-split" value={split} onChange={event => { setSplit(event.target.value as 'all' | Split); setPage(1); }}><option value="all">Semua bagian</option>{Object.entries(splitNames).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
         <label htmlFor="dataset-sentiment">Sentimen<select id="dataset-sentiment" value={label} onChange={event => { setLabel(event.target.value as 'all' | Sentiment); setPage(1); }}><option value="all">Semua sentimen</option>{sentiments.map(value => <option value={value} key={value}>{names[value]}</option>)}</select></label>
       </div>

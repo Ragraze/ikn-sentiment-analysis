@@ -16,15 +16,16 @@ export function TopicModelling({ initialSource = 'trained' }: { initialSource?: 
 
   return (
     <section id="topics" className="panel section-space topics-section">
-      <div className="topic-source-toolbar">
+      <div className="topic-controls">
+        <div>
+          <span className="field-label">Kelompok sentimen</span>
+          <div className="segmented-control" role="group" aria-label="Sentimen untuk topik">
+            {sentiments.map(label => <button key={label} type="button" aria-pressed={sentiment === label} onClick={() => setSentiment(label)}>{names[label]}</button>)}
+          </div>
+        </div>
         <label htmlFor="topic-source">Sumber topik<select id="topic-source" value={source} onChange={event => setSource(event.target.value)}><option value="notebook">Hasil notebook</option><option value="trained">Hasil training proyek</option></select></label>
       </div>
-      <div className="topic-toolbar">
-        <div className="segmented-control" role="group" aria-label="Sentimen untuk topik">
-          {sentiments.map(label => <button key={label} type="button" aria-pressed={sentiment === label} onClick={() => setSentiment(label)}>{names[label]}</button>)}
-        </div>
-        {!loading && group && data?.available && <span className="muted">{number(group.topics.length)} topik{group.documents !== undefined && ` · ${number(group.documents)} opini`}</span>}
-      </div>
+      {!loading && group && data?.available && <p className="topic-result-count" role="status"><strong>{names[sentiment]}</strong> · {number(group.topics.length)} topik{group.documents !== undefined && ` dari ${number(group.documents)} opini`}</p>}
       {loading || error ? <ResourceState loading={loading} error={error} onRetry={reload} /> : !data?.available ? (
         <ResourceState title="Hasil topik belum tersedia" message={data?.message || (source === 'trained' ? 'Pengelola perlu menjalankan pemodelan Top2Vec untuk menampilkan hasil training proyek.' : 'Output pemodelan topik pada notebook belum tersedia.')} />
       ) : (

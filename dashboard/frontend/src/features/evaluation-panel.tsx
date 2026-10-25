@@ -1,5 +1,6 @@
 'use client';
 
+import type { CSSProperties } from 'react';
 import { ResourceState } from '@/components/resource-state';
 import { SentimentBadge } from '@/components/sentiment-badge';
 import { useResource } from '@/hooks/use-resource';
@@ -18,9 +19,9 @@ export function EvaluationPanel() {
       ) : (
         <>
           <dl className="evaluation-stats">
-            <div><dt>Akurasi</dt><dd>{percent(report.accuracy || 0)}</dd></div>
-            <div><dt>Macro F1</dt><dd>{(report.macro_f1 || 0).toLocaleString('id-ID', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}</dd></div>
-            <div><dt>Data uji</dt><dd>{number(report.count || 0)}</dd></div>
+            <div><dt>Akurasi</dt><dd>{percent(report.accuracy || 0)}</dd><span>Proporsi prediksi yang benar</span></div>
+            <div><dt>Macro F1</dt><dd>{(report.macro_f1 || 0).toLocaleString('id-ID', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}</dd><span>Rata-rata F1 ketiga sentimen</span></div>
+            <div><dt>Data uji</dt><dd>{number(report.count || 0)}</dd><span>Opini pada evaluasi notebook</span></div>
           </dl>
           <div className="evaluation-grid">
             <div className="matrix-wrap">
@@ -30,9 +31,13 @@ export function EvaluationPanel() {
                 <table className="matrix">
                   <caption className="sr-only">Jumlah prediksi untuk setiap pasangan label aktual dan prediksi</caption>
                   <thead><tr><th scope="col">Aktual / Prediksi</th>{report.labels?.map(label => <th scope="col" key={label}>{names[label]}</th>)}</tr></thead>
-                  <tbody>{report.confusion?.map((row, index) => <tr key={index}><th scope="row">{report.labels ? names[report.labels[index]] : ''}</th>{row.map((count, column) => <td className={index === column ? 'correct' : ''} key={column}>{number(count)}</td>)}</tr>)}</tbody>
+                  <tbody>{report.confusion?.map((row, index) => {
+                    const total = row.reduce((sum, count) => sum + count, 0);
+                    return <tr key={index}><th scope="row">{report.labels ? names[report.labels[index]] : ''}</th>{row.map((count, column) => <td className={index === column ? 'correct' : ''} key={column} style={{ '--cell-strength': `${total ? 4 + count / total * 23 : 0}%` } as CSSProperties}>{number(count)}</td>)}</tr>;
+                  })}</tbody>
                 </table>
               </div>
+              <p className="matrix-key"><span aria-hidden="true" />Diagonal hijau: prediksi sesuai label aktual.</p>
             </div>
             <div className="class-metrics">
               <h3>Metrik per sentimen</h3>
