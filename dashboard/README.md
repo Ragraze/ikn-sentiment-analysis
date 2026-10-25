@@ -1,38 +1,38 @@
 # IKN Sentiment Lab: Next.js + Flask + IndoBERT + Top2Vec
 
-Dashboard dan API Python yang diadaptasi dari ketiga notebook di folder `../notebooks/`:
+A dashboard and Python API adapted from the three notebooks in `../notebooks/`:
 
-1. `Preprocessing_Datasets_IKN.ipynb`: cleaning, tokenisasi, penghapusan slang/stopword/kata Inggris, dan stemming Sastrawi.
-2. `Sentimen_Analysis_IKN_IndoBERT.ipynb`: fine-tuning dan evaluasi IndoBERT untuk tiga sentimen.
-3. `Topic_Modelling_of_IKN.ipynb`: Top2Vec per sentimen dan coherence score.
+1. `Preprocessing_Datasets_IKN.ipynb`: text cleaning, tokenization, removal of slang, stopwords, and English words, and Sastrawi stemming.
+2. `Sentimen_Analysis_IKN_IndoBERT.ipynb`: IndoBERT fine-tuning and evaluation for three sentiment classes.
+3. `Topic_Modelling_of_IKN.ipynb`: Top2Vec models for each sentiment and coherence scores.
 
-Frontend **Next.js App Router + React + TypeScript** meminta data dan prediksi ke backend **Flask**. Next.js meneruskan request `/api/*` ke Flask, sehingga browser menggunakan satu origin tanpa konfigurasi CORS tambahan. Klasifikasi memakai PyTorch/IndoBERT; topic modelling memakai Top2Vec.
+The **Next.js App Router + React + TypeScript** frontend requests data and predictions from the **Flask** backend. Next.js forwards `/api/*` requests to Flask, allowing the browser to use a single origin without additional CORS configuration. Classification uses PyTorch/IndoBERT, and topic modelling uses Top2Vec.
 
-Panduan ini memuat detail pipeline penelitian. Untuk ringkasan fitur, arsitektur, contoh request API, dan troubleshooting, lihat [README utama](../README.md).
+This guide covers the research pipeline in detail. For an overview of features, architecture, API request examples, and troubleshooting, see the [main README](../README.md).
 
-## Daftar isi
+## Table of contents
 
-- [Jalankan](#jalankan)
-- [Dokumentasi API](#dokumentasi-api)
-- [Halaman dashboard](#halaman-dashboard)
-- [Memasang ZIP hasil Colab](#memasang-zip-hasil-colab)
-- [Konfigurasi yang diambil dari notebook](#konfigurasi-yang-diambil-dari-notebook)
-- [Kesamaan preprocessing dan tokenisasi](#kesamaan-preprocessing-dan-tokenisasi)
-- [Ekspor dari runtime notebook yang sudah dilatih](#ekspor-dari-runtime-notebook-yang-sudah-dilatih)
-- [Evaluasi dan hasil notebook](#evaluasi-dan-hasil-notebook)
-- [Topic modelling Top2Vec](#topic-modelling-top2vec)
-- [Struktur aplikasi](#struktur-aplikasi)
+- [Running the application](#running-the-application)
+- [API documentation](#api-documentation)
+- [Dashboard pages](#dashboard-pages)
+- [Importing a Colab checkpoint ZIP](#importing-a-colab-checkpoint-zip)
+- [Configuration from the notebook](#configuration-from-the-notebook)
+- [Preprocessing and tokenization consistency](#preprocessing-and-tokenization-consistency)
+- [Exporting from a trained notebook runtime](#exporting-from-a-trained-notebook-runtime)
+- [Evaluation and notebook results](#evaluation-and-notebook-results)
+- [Top2Vec topic modelling](#top2vec-topic-modelling)
+- [Application structure](#application-structure)
 - [Environment variables](#environment-variables)
-- [Pengujian](#pengujian)
-- [Referensi](#referensi)
+- [Testing](#testing)
+- [References](#references)
 
-## Jalankan
+## Running the application
 
-Gunakan Python 3.11 atau 3.12, Node.js >= 20.9, dan koneksi internet untuk instalasi dependensi serta unduhan awal model/resource.
+Use Python 3.11 or 3.12, Node.js >= 20.9, and an internet connection for dependency installation and the initial model/resource downloads.
 
-**Checkpoint dan laporan training tidak disertakan dalam clone GitHub.** Isi `models/` dan `reports/` diabaikan Git, selain `.gitkeep`. Dataset dan output notebook sudah disertakan sehingga eksplorasi dan evaluasi historis tetap dapat digunakan sebelum model lokal tersedia. Prediksi kalimat memerlukan checkpoint IndoBERT; pencocokan topik kalimat memerlukan model Top2Vec.
+**Checkpoints and training reports are excluded from GitHub clones.** The contents of `models/` and `reports/` are ignored by Git, except for `.gitkeep`. Datasets and notebook outputs are included, so exploration and historical evaluation are available before local models are installed. Sentence prediction requires an IndoBERT checkpoint, and sentence-to-topic matching requires Top2Vec models.
 
-Untuk Linux/WSL yang sudah memiliki checkpoint terpasang atau hasil ekspor pada lokasi default, instalasi backend dapat dijalankan dengan satu perintah:
+On Linux/WSL, if a checkpoint or notebook export is already installed at the default location, backend setup can be run with one command:
 
 ```bash
 cd dashboard
@@ -40,11 +40,11 @@ bash scripts/setup_backend.sh
 .venv/bin/python run.py
 ```
 
-Skrip menyiapkan virtual environment, pip, PyTorch CPU, dependensi backend, dan resource NLTK. Setelah instalasi, skrip menjalankan tes serta mencoba prediksi checkpoint lokal melalui test client Flask tanpa membuka port. Skrip berhenti jika salah satu tahap gagal. Jika checkpoint belum dipasang, tahap prediksi akan gagal; gunakan instalasi manual di bawah, lalu impor atau latih model. Python 3.10 juga didukung; pilih interpreter dengan `IKN_SETUP_PYTHON=python3.12 bash scripts/setup_backend.sh`. Unduhan memerlukan akses ke PyPI, `download.pytorch.org`, dan server resource NLTK. Skrip dapat dijalankan ulang untuk melanjutkan instalasi yang terputus.
+The script prepares a virtual environment, pip, CPU PyTorch, backend dependencies, and NLTK resources. It then runs tests and attempts a prediction using the local checkpoint through Flask's test client, without opening a network port. It stops if any step fails. If no checkpoint is installed, prediction verification fails; use the manual installation below, then import or train a model. Python 3.10 is also supported; select an interpreter with `IKN_SETUP_PYTHON=python3.12 bash scripts/setup_backend.sh`. Downloads require access to PyPI, `download.pytorch.org`, and the NLTK resource servers. The script can be rerun to resume an interrupted installation.
 
-Untuk instalasi manual, gunakan langkah berikut.
+For manual installation, use the following steps.
 
-Terminal pertama, jalankan backend:
+Start the backend in the first terminal:
 
 ```bash
 cd dashboard
@@ -55,7 +55,7 @@ python scripts/setup_nltk.py
 python run.py
 ```
 
-Terminal kedua, jalankan frontend:
+Start the frontend in the second terminal:
 
 ```bash
 cd dashboard/frontend
@@ -63,41 +63,41 @@ npm ci
 npm run dev
 ```
 
-Buka **http://localhost:3000** untuk dashboard. Backend API berjalan pada **http://127.0.0.1:5000**. Pada Windows, aktivasi virtual environment dengan `.venv\Scripts\activate`.
+Open **http://localhost:3000** for the dashboard. The backend API runs at **http://127.0.0.1:5000**. On Windows, activate the virtual environment with `.venv\Scripts\activate` in Command Prompt, or `.\.venv\Scripts\Activate.ps1` in PowerShell.
 
-## Dokumentasi API
+## API documentation
 
-Buka **http://127.0.0.1:5000/api/docs/** untuk Swagger UI, atau **http://localhost:3000/api/docs/** melalui frontend. Spesifikasi OpenAPI tersedia di `/api/openapi.json`. Jika dependensi sudah terpasang sebelumnya, jalankan `python -m pip install -r requirements.txt`, lalu restart backend.
+Open **http://127.0.0.1:5000/api/docs/** for Swagger UI, or **http://localhost:3000/api/docs/** through the frontend. The OpenAPI specification is available at `/api/openapi.json`. For an existing installation, run `python -m pip install -r requirements.txt` and restart the backend to install any newly required packages.
 
-Swagger mendokumentasikan status model, ringkasan dataset, pencarian dan ekspor CSV, prediksi kalimat, topik, dan evaluasi. Buka endpoint, pilih **Try it out**, isi parameter atau JSON, lalu **Execute**. Request berjalan pada origin yang sama tanpa API key. Aset Swagger disajikan oleh backend; prediksi membutuhkan checkpoint lokal seperti pada dashboard dan memakai batas request yang sama.
+Swagger documents model status, dataset summaries, search and CSV export, sentence prediction, topics, and evaluation. Expand an endpoint, select **Try it out**, enter parameters or JSON, and choose **Execute**. Requests use the same origin and require no API key. Swagger assets are served by the backend; predictions require a local checkpoint and follow the same request limits as the dashboard.
 
-Daftar endpoint, parameter, contoh `curl`, dan kode respons tersedia di [dokumentasi API README utama](../README.md#dokumentasi-dan-penggunaan-api). Skema lengkap didefinisikan dalam [server/openapi.py](server/openapi.py).
+Endpoint lists, parameters, `curl` examples, and response codes are available in the [main README's API documentation](../README.md#api-documentation-and-usage). Complete schemas are defined in [server/openapi.py](server/openapi.py).
 
-`/api/health` tidak memuat model dan dapat mengembalikan HTTP 200 walaupun checkpoint belum tersedia. Untuk IndoBERT, `configured` berarti manifest checkpoint terdeteksi, sedangkan `ready` berarti model berhasil dimuat. Periksa juga status per kelompok pada `topics.groups`. Laporan topik atau evaluasi yang belum ada ditandai dengan `available=false`.
+`/api/health` does not load models and can return HTTP 200 even when a checkpoint is unavailable. For IndoBERT, `configured` means a checkpoint manifest was detected, while `ready` means the model loaded successfully. Also inspect the per-sentiment status in `topics.groups`. Missing topic or evaluation reports are indicated by `available=false`.
 
-## Halaman dashboard
+## Dashboard pages
 
-Navigasi utama menggunakan sidebar dengan lima halaman:
+The sidebar provides navigation to five pages:
 
-| Halaman | Alamat | Isi |
+| Page | Address | Contents |
 | --- | --- | --- |
-| Dashboard | `/` | Ringkasan dataset, donat proporsi sentimen, batang per bagian data, jumlah topik, dan status model |
-| Analisis kalimat | `/analysis` | Masukan opini serta hasil sentimen dan topik |
-| Dataset opini | `/dataset` | Pencarian, filter, pagination, dan ekspor CSV |
-| Pemodelan topik | `/topics` | Kata kunci, bobot, dan coherence; sumber awal hasil training proyek |
-| Evaluasi model | `/evaluation` | Metrik klasifikasi dan confusion matrix |
+| Dashboard | `/` | Dataset summary, sentiment proportion donut, grouped bars for dataset splits, topic counts, and model status |
+| Sentence analysis | `/analysis` | Opinion input, sentiment prediction, and matching topics |
+| Opinion dataset | `/dataset` | Search, filters, pagination, and CSV export |
+| Topic modelling | `/topics` | Keywords, weights, and coherence; project training results are the default source |
+| Model evaluation | `/evaluation` | Classification metrics and confusion matrix |
 
-Pada layar kecil, tombol **Menu** membuka sidebar yang dapat ditutup dengan tombol tutup, Escape, atau klik di luar panel. Grafik dashboard menggunakan data asli API. Filter bagian data memperbarui proporsi sentimen; pilihan sumber topik ikut dibawa saat membuka detail. Tabel pada grafik perbandingan menyediakan angka tepat untuk setiap batang.
+On small screens, the **Menu** button opens the sidebar. Close it with the close button, Escape, or a click outside the panel. Dashboard charts use actual API data. The dataset split filter updates sentiment proportions, and the selected topic source is carried into the detail page. The comparison chart includes a table with exact values for each bar.
 
-Pada halaman analisis, **Ctrl/Cmd + Enter** menjalankan analisis, **Salin hasil** menyalin kalimat dan ringkasan hasil, serta **Urungkan** memulihkan kalimat yang dikosongkan. Isian dan hasil terakhir bertahan selama berpindah menu dalam aplikasi, lalu kosong saat halaman dimuat ulang. Tombol **Batalkan** membatalkan request dan tampilan hasil di browser; komputasi yang sudah diterima backend dapat tetap berjalan.
+The interface uses Indonesian labels. On the analysis page, **Ctrl/Cmd + Enter** submits an analysis, **Salin hasil** (Copy results) copies the sentence and result summary, and **Urungkan** (Undo) restores a cleared sentence. The latest input and result remain available while navigating within the application and reset on page reload. **Batalkan** (Cancel) aborts the browser request and clears its pending result; computation already accepted by the backend may continue.
 
-Dataset menyediakan reset filter serta pilihan 8/16/32/50 opini per halaman. Ekspor dan pagination menunggu pencarian/filter selesai agar hasil yang diunduh sesuai dengan tampilan. Halaman evaluasi memiliki penjelasan sumber dan bagian **Cara membaca metrik evaluasi** yang bisa dibuka bila diperlukan.
+The dataset page offers filter reset and 8/16/32/50 opinions per page. Export and pagination wait for search/filter updates to finish so downloaded results match the active filters. The evaluation page explains the result source and includes an expandable **Cara membaca metrik evaluasi** (How to read evaluation metrics) section.
 
-Untuk produksi frontend: `npm run build` kemudian `npm start`. Ubah URL backend dengan menyalin `frontend/.env.example` menjadi `frontend/.env.local` dan mengisi `FLASK_API_URL`. Restart Next.js setelah mengubah konfigurasi; lakukan build ulang untuk produksi.
+For the production frontend, run `npm run build` followed by `npm start`. To change the backend URL, copy `frontend/.env.example` to `frontend/.env.local` and set `FLASK_API_URL`. Restart Next.js after configuration changes and rebuild for production.
 
-Training dijalankan sekali. Untuk pemakaian berikutnya, jalankan backend dan frontend tanpa mengulang training. Ringkasan data dan hasil lama notebook bisa dibuka sebelum checkpoint tersedia. Kolom prediksi menunjukkan status model yang sebenarnya.
+Training is needed only when preparing or replacing a model. For subsequent use, start the backend and frontend without retraining. Dataset summaries and historical notebook results remain available before a checkpoint is installed. The prediction panel reports the actual model status.
 
-Jika checkpoint belum tersedia, jalankan dari folder `dashboard` setelah instalasi:
+If no checkpoint is available, run the following from `dashboard/` after installation:
 
 ```bash
 python scripts/setup_nltk.py
@@ -105,45 +105,45 @@ python scripts/train.py
 python scripts/evaluate.py
 ```
 
-Jika sudah memiliki hasil training Colab, gunakan langkah ekspor di bawah tanpa melatih ulang.
+If a trained Colab model is already available, use the export instructions below to reuse it.
 
-Jika sudah memiliki checkpoint Colab hasil fine-tuning, pasang di **`models/indobert-ikn/`**, sesuai lokasi default backend. Model tersebut tidak memerlukan training ulang untuk dipakai. Arsip ZIP dan hasil pemasangan merupakan file lokal yang tidak ikut di-push ke GitHub.
+Install an existing fine-tuned Colab checkpoint in **`models/indobert-ikn/`**, the backend's default location. That model can be used without retraining. ZIP archives and installed checkpoints are local files excluded from GitHub.
 
-## Memasang ZIP hasil Colab
+## Importing a Colab checkpoint ZIP
 
-Untuk pemasangan baru ke folder tujuan yang masih kosong, siapkan ZIP hasil fine-tuning sendiri. Contoh jika arsip diletakkan dengan nama berikut:
+Provide your own fine-tuned checkpoint ZIP and an empty destination directory. For example, if the archive is stored at the following path:
 
 ```bash
 python scripts/import_checkpoint.py models/indobert_model_3e6.zip
 ```
 
-Skrip mengekstrak checkpoint, memeriksa struktur safetensors dan classifier tiga kelas, lalu membuat konfigurasi serving. Label generik `LABEL_0`, `LABEL_1`, `LABEL_2` di ZIP dipetakan menggunakan notebook: **positive=0, neutral=1, negative=2**. Nilai `_num_labels` lama dirapikan berdasarkan shape classifier yang benar-benar tersimpan.
+The script extracts the checkpoint, checks its safetensors structure and three-class classifier, and creates the serving configuration. Generic labels `LABEL_0`, `LABEL_1`, and `LABEL_2` in the ZIP are mapped using the notebook: **positive=0, neutral=1, negative=2**. The legacy `_num_labels` value is normalized using the classifier shape stored in the weights.
 
-ZIP menyimpan vocabulary dalam `tokenizer.json`. Skrip menulis `vocab.txt` dari indeks yang sama untuk kompatibilitas `BertTokenizer`. Bobot model dan arsip sumber tidak diubah. Konfigurasi asli disimpan sebagai `config.original.json`, dan checksum serta hasil pemeriksaan tersedia di `import_metadata.json`.
+The ZIP stores the vocabulary in `tokenizer.json`. The script writes `vocab.txt` using the same indices for `BertTokenizer` compatibility. Model weights and the source archive are preserved. The original configuration is saved as `config.original.json`, and checksums and validation results are recorded in `import_metadata.json`.
 
-Folder yang sudah berisi checkpoint tidak ditimpa oleh skrip impor. Gunakan `--output models/model-lain` untuk memasang checkpoint berbeda, lalu isi `INDOBERT_MODEL_DIR` sesuai lokasi tersebut dan restart backend.
+The import script does not overwrite an existing checkpoint directory. Use `--output models/model-lain` for another checkpoint, set `INDOBERT_MODEL_DIR` to that location, and restart the backend.
 
-Pretrained IndoBERT tetap merupakan backbone; ZIP yang dipasang harus berisi classifier hasil fine-tuning. Jika belum mempunyai checkpoint, gunakan skrip training atau langkah ekspor runtime notebook di bawah.
+Pretrained IndoBERT supplies the backbone; the imported ZIP must contain a fine-tuned classifier. If no checkpoint is available, use the training script or the notebook runtime export steps below.
 
-## Konfigurasi yang diambil dari notebook
+## Configuration from the notebook
 
-Sumber konfigurasi dapat diperiksa di `config/notebook.json`.
+The source configuration is available in `config/notebook.json`.
 
-| Parameter | Nilai notebook utama |
+| Parameter | Primary notebook value |
 | --- | --- |
 | Backbone | `indobenchmark/indobert-base-p1` |
-| Model | `BertForSequenceClassification` dari Transformers |
+| Model | `BertForSequenceClassification` from Transformers |
 | Tokenizer | `BertTokenizer` |
-| Indeks label | `0: positive`, `1: neutral`, `2: negative` |
+| Label indices | `0: positive`, `1: neutral`, `2: negative` |
 | Optimizer | `torch.optim.Adam` |
 | Learning rate | `3e-6` |
-| Epoch | `5` |
+| Epochs | `5` |
 | Batch size | `32` |
-| Maksimum sequence | `512` |
+| Maximum sequence length | `512` |
 | Random seed | `42` |
-| Input training | TSV hasil preprocessing |
+| Training input | Preprocessed TSVs |
 
-Skrip training memindahkan primary run notebook ke CLI, dengan train/validation loop yang sama dan checkpoint pada epoch terakhir. Test tidak digunakan untuk memilih parameter. Notebook juga berisi percobaan learning rate dan epoch lain; parameter dapat diubah lewat argumen CLI.
+The training script ports the notebook's primary run to the CLI, preserving its train/validation loop and final-epoch checkpoint selection. Test data is not used to select parameters. The notebook also contains other learning-rate and epoch experiments; CLI arguments can override these parameters.
 
 ```bash
 python scripts/train.py --learning-rate 2e-6 --epochs 5
@@ -151,33 +151,33 @@ python scripts/train.py --batch-size 8 --device cuda
 python scripts/train.py --help
 ```
 
-Default perangkat training adalah CUDA jika tersedia, atau CPU. Default worker adalah 0 agar portabel; `--workers 16` tersedia seperti notebook. CPU dapat membutuhkan waktu jauh lebih lama. Mengganti batch size mengubah proses training dan tidak menjamin hasil numerik yang sama.
+Training uses CUDA when available and CPU otherwise. The default worker count is 0 for portability; `--workers 16` is available to match the notebook. CPU training can take considerably longer. Changing the batch size changes training and does not guarantee identical numerical results.
 
-Model yang sudah ada tidak ditimpa kecuali memakai `--overwrite`. Cache pretrained dan resource NLTK disimpan di `.cache/` dalam folder dashboard. `--local-files-only` tersedia untuk backbone yang sudah diunduh.
+Existing models are preserved unless `--overwrite` is specified. Pretrained model caches and NLTK resources are stored in `.cache/` under the dashboard directory. Use `--local-files-only` for a backbone that has already been downloaded.
 
-## Kesamaan preprocessing dan tokenisasi
+## Preprocessing and tokenization consistency
 
-Dataset untuk training dan evaluasi dibaca langsung dari TSV proyek, tanpa preprocessing ulang:
+Training and evaluation read the project TSVs directly, without preprocessing them again:
 
-| Bagian | CSV asli untuk eksplorasi | TSV input IndoBERT |
+| Split | Original CSV for exploration | IndoBERT input TSV |
 | --- | ---: | ---: |
-| Train | 7.512 | 7.498 |
-| Validation | 2.504 | 2.502 |
-| Test | 2.504 | 2.501 |
+| Train | 7,512 | 7,498 |
+| Validation | 2,504 | 2,502 |
+| Test | 2,504 | 2,501 |
 
-Kalimat baru dari dashboard melewati fungsi preprocessing yang dipindahkan dari notebook, kemudian tokenizer IndoBERT. Evaluasi TSV melewati tokenizer saja agar teks tidak diproses dua kali.
+New dashboard sentences pass through the preprocessing function ported from the notebook, then the IndoBERT tokenizer. TSV evaluation uses only the tokenizer to avoid processing the text twice.
 
-Adapter tokenisasi mengikuti `DocumentSentimentDataLoader` IndoNLU: `tokenizer.encode` dengan special token, ambil prefix sampai 512 token, padding ID 0, dan attention mask. Ini mempertahankan perilaku pemotongan notebook untuk kalimat panjang, termasuk kemungkinan terpotongnya token `[SEP]` terakhir. Training dan serving menggunakan adapter yang sama.
+The tokenization adapter follows IndoNLU's `DocumentSentimentDataLoader`: call `tokenizer.encode` with special tokens, retain the prefix up to 512 tokens, pad with ID 0, and create an attention mask. This preserves the notebook's truncation behaviour for long sentences, including the possibility of truncating the final `[SEP]` token. Training and serving use the same adapter.
 
-Pipeline preprocessing lama menghapus kata slang, stopword, serta kata Inggris. Perilaku ini dipertahankan agar konsisten dengan dataset training. Konsekuensinya, sebagian informasi sentimen dapat hilang. Perubahan preprocessing harus disertai pembuatan dataset dan fine-tuning ulang.
+The original preprocessing pipeline removes slang, stopwords, and English words. This behaviour is preserved for consistency with the training dataset. Some sentiment information may therefore be lost. Preprocessing changes require rebuilding the dataset and fine-tuning again.
 
-## Ekspor dari runtime notebook yang sudah dilatih
+## Exporting from a trained notebook runtime
 
-Jika model hasil training masih ada di runtime Colab, tidak perlu melatih ulang. Tambahkan folder kode dashboard ke Python path, lalu jalankan **setelah run training yang ingin dipakai**:
+If the trained model is still available in a Colab runtime, export it without retraining. Add the dashboard code directory to the Python path and run the following **after the training run you intend to use**:
 
 ```python
 import sys
-sys.path.insert(0, '/content/dashboard')  # Sesuaikan lokasi kode dashboard.
+sys.path.insert(0, '/content/dashboard')  # Adjust this to the dashboard code location.
 from notebook_export import export_checkpoint
 
 export_checkpoint(
@@ -188,13 +188,13 @@ export_checkpoint(
 )
 ```
 
-Salin seluruh folder hasil ekspor ke `dashboard/models/indobert-ikn/`. Nama `model`, `tokenizer`, dan `i2w` memang digunakan notebook asli. Varian backbone, preprocessing, dan panjang token default sudah sesuai notebook.
+Copy the entire export directory to `dashboard/models/indobert-ikn/`. The original notebook uses the names `model`, `tokenizer`, and `i2w`. The default backbone variant, preprocessing profile, and token length match the notebook.
 
-Variabel `model` ditimpa pada setiap skenario tuning notebook. Ekspor tepat setelah skenario yang dipilih, sebelum menjalankan skenario berikutnya. Hasil export meliputi `config.json`, `model.safetensors`, tokenizer, dan `serving.json`.
+The notebook overwrites `model` in each tuning scenario. Export immediately after the chosen scenario, before starting another one. The export includes `config.json`, `model.safetensors`, tokenizer files, and `serving.json`.
 
-Backend menggunakan file lokal, memeriksa urutan label serta kelengkapan bobot classifier, lalu menjalankan `model.eval()` dan `torch.inference_mode()`. Tidak ada unduhan model selama request prediksi. Restart backend setelah mengganti checkpoint.
+The backend uses local files, verifies label ordering and classifier weight completeness, and runs `model.eval()` and `torch.inference_mode()`. Prediction requests do not download models. Restart the backend after replacing a checkpoint.
 
-Struktur checkpoint hasil ekspor biasanya seperti berikut:
+An exported checkpoint typically has this structure:
 
 ```text
 models/indobert-ikn/
@@ -206,35 +206,35 @@ models/indobert-ikn/
   vocab.txt
 ```
 
-File tambahan seperti `tokenizer.json`, metadata impor, dan riwayat training dapat tersedia sesuai cara model dipasang. `serving.json` menetapkan profil preprocessing, tokenisasi, panjang maksimum, backbone, serta mapping label yang diperiksa backend sebelum inferensi.
+Additional files such as `tokenizer.json`, import metadata, and training history may be present depending on how the model was installed. `serving.json` defines the preprocessing profile, tokenization, maximum length, backbone, and label mapping checked by the backend before inference.
 
-## Evaluasi dan hasil notebook
+## Evaluation and notebook results
 
-Halaman evaluasi menggunakan **hasil notebook (CSV)** yang dihitung ulang dari `test_with_predictions new.csv`, sebanyak 2.501 opini. Akurasi **77,61%**, dengan Macro F1 **0,6393**. Sumber ini ditetapkan langsung pada halaman, tanpa pilihan sumber evaluasi. Angka berasal dari prediksi penelitian yang tersimpan.
+The evaluation page uses **notebook results (CSV)** recalculated from `test_with_predictions new.csv`, containing 2,501 opinions. Accuracy is **77.61%**, and Macro F1 is **0.6393**. This source is fixed on the page, without an evaluation-source selector. The figures come from saved research predictions.
 
-Perintah `python scripts/evaluate.py` menghasilkan laporan evaluasi checkpoint dan CSV prediksi untuk pipeline pemodelan topik.
+`python scripts/evaluate.py` produces the checkpoint evaluation report and a prediction CSV for the topic modelling pipeline.
 
-Output evaluasi checkpoint:
+Checkpoint evaluation outputs:
 
 ```text
-reports/test.json                  # Akurasi, macro F1, confusion matrix, metrik per kelas.
-reports/test_with_predictions.csv  # text, sentiment, sentiment_predict; input untuk notebook Top2Vec.
+reports/test.json                  # Accuracy, macro F1, confusion matrix, and per-class metrics.
+reports/test_with_predictions.csv  # text, sentiment, sentiment_predict; input for the Top2Vec notebook.
 ```
 
-Perbaikan dari notebook: `classification_report(..., target_names=w2i.keys())` tanpa `labels` eksplisit dapat menukar nama positif/negatif karena urutan alfabet kelas berbeda dari urutan IndoNLU. Perhitungan dashboard menggunakan urutan eksplisit **positive → neutral → negative**. Support aktual pada TSV test: positif 388, netral 366, negatif 1.747.
+A correction to the notebook: `classification_report(..., target_names=w2i.keys())` without explicit `labels` can swap positive/negative names because alphabetical class ordering differs from IndoNLU ordering. Dashboard calculations use the explicit order **positive → neutral → negative**. Actual test TSV support is 388 positive, 366 neutral, and 1,747 negative opinions.
 
-`test_with_predictions_and_coherence.csv` menyimpan prediksi yang berbeda dari CSV pertama. Panel topik menggunakan output yang benar-benar tersimpan di notebook Top2Vec dan menjelaskan sumbernya.
+`test_with_predictions_and_coherence.csv` contains predictions that differ from the first CSV. The topic panel uses the outputs actually saved in the Top2Vec notebook and identifies their source.
 
-## Topic modelling Top2Vec
+## Top2Vec topic modelling
 
-Bagian topic modelling termasuk dalam frontend Next.js, dengan:
+The Next.js topic modelling page provides:
 
-- Pilihan sentimen positif, netral, dan negatif.
-- Kata pembentuk setiap topik.
-- Perbandingan coherence score `c_v` ketiga sentimen.
-- Pilihan sumber **Hasil notebook** atau **Hasil training proyek**.
+- Positive, neutral, and negative sentiment groups.
+- Keywords defining each topic.
+- A comparison of `c_v` coherence scores across all three sentiments.
+- **Hasil notebook** (Notebook results) and **Hasil training proyek** (Project training results) sources.
 
-Sumber notebook membaca output `../notebooks/Topic_Modelling_of_IKN.ipynb`. Untuk menjalankan ulang pipeline pemodelan topik dari CSV prediksi IndoBERT:
+The notebook source reads outputs from `../notebooks/Topic_Modelling_of_IKN.ipynb`. To rerun the topic modelling pipeline using IndoBERT predictions:
 
 ```bash
 python -m pip install -r requirements-topics.txt
@@ -243,38 +243,38 @@ python scripts/evaluate.py
 python scripts/train_topics.py
 ```
 
-Skrip mengikuti notebook: satu Top2Vec untuk setiap sentimen, embedding `doc2vec`, `speed='deep-learn'`, `min_count=10`, serta evaluasi gensim `CoherenceModel(coherence='c_v')`. Model disimpan di `models/top2vec/`, sedangkan laporan, jumlah opini per topik, dan bobot kata berada di `reports/topics.json`. Setiap kelompok sentimen memerlukan sedikitnya 20 dokumen; korpus yang kecil atau kurang beragam tetap dapat gagal membentuk cluster. Top2Vec menentukan jumlah topik dari korpus.
+The script follows the notebook: one Top2Vec model per sentiment, `doc2vec` embeddings, `speed='deep-learn'`, `min_count=10`, and gensim `CoherenceModel(coherence='c_v')` evaluation. Models are saved in `models/top2vec/`; the report, topic document counts, and word weights are saved in `reports/topics.json`. Each sentiment group needs at least 20 documents. Small or insufficiently diverse corpora may still fail to form clusters. Top2Vec determines the number of topics from the corpus.
 
-Jika ingin menggunakan CSV prediksi yang sudah tersedia tanpa menjalankan IndoBERT ulang:
+To use an existing prediction CSV without rerunning IndoBERT:
 
 ```bash
 python scripts/train_topics.py --predictions "../data/predictions/test_with_predictions_and_coherence.csv"
 ```
 
-Restart backend setelah training atau mengganti model. Buka **Analisis kalimat**: IndoBERT mengklasifikasikan sentimen, lalu `Top2Vec.query_topics` mencocokkan teks hasil preprocessing ke model untuk sentimen tersebut. UI menampilkan topik terdekat, sepuluh kata kunci, kemiripan cosine, jumlah opini dalam topik, dan hingga dua topik pembanding. Nomor topik berlaku di dalam masing-masing kelompok sentimen. Judul topik memakai kata kunci model, tanpa nama kategori buatan.
+Restart the backend after training or replacing models. Open **Analisis kalimat** (Sentence analysis): IndoBERT predicts the sentiment, then `Top2Vec.query_topics` matches the preprocessed text against the model for that sentiment. The interface displays the closest topic, ten keywords, cosine similarity, the topic's document count, and up to two alternative topics. Topic numbers apply within each sentiment group. Topic titles use model keywords rather than manually assigned categories.
 
-Model dimuat saat diperlukan dan disimpan dalam memori per proses; training tidak berjalan dalam request. Kalimat tanpa kata yang dikenali korpus tidak diberi topik acak. Jika model topik belum tersedia atau gagal dimuat, respons sentimen tetap berhasil dan bagian topik menjelaskan statusnya. Laporan notebook tidak digunakan sebagai pengganti model inferensi.
+Models load on demand and are cached per process. Training does not run during requests. Sentences containing no words recognized by the corpus receive no topic match. If a topic model is missing or fails to load, sentiment prediction still succeeds and the topic section explains the status. Notebook reports do not substitute for inference models.
 
-Kemiripan topik adalah cosine pada rentang −1 sampai 1, bukan probabilitas atau confidence sentimen. Hasil terdekat juga belum tentu relevan, terutama untuk kalimat pendek atau di luar konteks IKN. Coherence c_v mengukur keterkaitan kata pada korpus, bukan skor untuk kalimat baru. Kata kunci pada panel laporan menampilkan bobot cosine terhadap topik ketika bobot tersedia.
+Topic similarity is a cosine value between −1 and 1, rather than a probability or sentiment confidence score. Even the closest topic may be irrelevant, particularly for short sentences or text outside the IKN context. `c_v` coherence measures word relatedness within the corpus, rather than scoring a new sentence. When available, report keywords include their cosine weights relative to the topic.
 
-Perintah lain yang tersedia:
+Other available commands:
 
 ```bash
 python scripts/train_topics.py --help
 python scripts/train_topics.py --workers 2 --speed learn
 ```
 
-Mengganti `--speed` mengubah pelatihan dari konfigurasi notebook. `--overwrite` diperlukan untuk mengganti artefak model yang sudah ada. Hanya muat artefak Top2Vec lokal yang dibuat atau dipercaya pengelola; format penyimpanannya memakai deserialisasi Python.
+Changing `--speed` changes training from the notebook configuration. `--overwrite` is required to replace existing model artifacts. Load only local Top2Vec artifacts created or trusted by the project maintainer, because their storage format uses Python deserialization.
 
-Kontrak API:
+API contract:
 
-- `GET /api/health`: status IndoBERT dan `topics.groups` untuk tiga model Top2Vec, tanpa memuat bobot.
-- `POST /api/predict` dengan JSON `{"text":"Opini tentang IKN"}`: hasil sentimen ditambah `topic_analysis` (`available`, `matched`, `state`, `sentiment`, `topics`, `message`). Setiap topik memiliki `number` (mulai 0), `words`, `word_scores`, `similarity`, dan `documents`.
-- `GET /api/topics?source=notebook|trained`: laporan topik per sentimen. Pilih **Hasil training proyek** untuk melihat hasil pelatihan baru.
+- `GET /api/health`: IndoBERT status and `topics.groups` for the three Top2Vec models, without loading weights.
+- `POST /api/predict` with JSON `{"text":"Opini tentang IKN"}`: sentiment results plus `topic_analysis` (`available`, `matched`, `state`, `sentiment`, `topics`, `message`). Each topic has `number` (starting at 0), `words`, `word_scores`, `similarity`, and `documents`.
+- `GET /api/topics?source=notebook|trained`: topic reports for each sentiment. Select **Hasil training proyek** (Project training results) to view newly trained results.
 
-Implementasi pencocokan mengikuti [API resmi Top2Vec: query_topics](https://top2vec.readthedocs.io/en/stable/api.html#top2vec.Top2Vec.query_topics).
+Topic matching follows the [official Top2Vec query_topics API](https://top2vec.readthedocs.io/en/stable/api.html#top2vec.Top2Vec.query_topics).
 
-## Struktur aplikasi
+## Application structure
 
 ```text
 dashboard/
@@ -286,36 +286,36 @@ dashboard/
       hooks/
       lib/
     tests/
-  server/             # Flask API, IndoBERT inference, dataset, hasil Top2Vec
-  scripts/            # Training/evaluasi IndoBERT dan Top2Vec
-  config/             # Konfigurasi yang diambil dari notebook
-  models/             # Checkpoint IndoBERT dan model Top2Vec
-  reports/            # Evaluasi, prediksi CSV, dan laporan topik
-  run.py              # Entrypoint Flask
+  server/             # Flask API, IndoBERT inference, datasets, and Top2Vec results
+  scripts/            # IndoBERT and Top2Vec training/evaluation
+  config/             # Configuration taken from the notebook
+  models/             # IndoBERT checkpoints and Top2Vec models
+  reports/            # Evaluation, prediction CSVs, and topic reports
+  run.py              # Flask entrypoint
 ```
 
-Folder checkpoint IndoBERT berada di `models/indobert-ikn/`.
+The IndoBERT checkpoint directory is `models/indobert-ikn/`.
 
-Beberapa output eksperimen learning rate di notebook tidak cocok dengan source cell yang tersimpan. Konfigurasi training aplikasi memakai source primary run (`3e-6`, 5 epoch), dan metrik lama dihitung dari CSV aktual.
+Some notebook learning-rate experiment outputs differ from the saved source cells. Application training follows the primary run's source (`3e-6`, 5 epochs), while historical metrics are calculated from the actual CSVs.
 
 ## Environment variables
 
-Backend membaca variabel dari environment proses, bukan memuat `.env` secara otomatis. Default path dihitung dari lokasi repository; gunakan path absolut untuk pengaturan sendiri. Frontend membaca `FLASK_API_URL` melalui environment Next.js, misalnya `frontend/.env.local` yang dibuat dari `.env.example`.
+The backend reads variables from the process environment and does not automatically load `.env` files. Default paths are resolved from the repository location; use absolute paths for custom settings. The frontend reads `FLASK_API_URL` through the Next.js environment, such as `frontend/.env.local` copied from `.env.example`.
 
-| Variabel | Default | Fungsi |
+| Variable | Default | Purpose |
 | --- | --- | --- |
-| `INDOBERT_MODEL_DIR` | `dashboard/models/indobert-ikn` | Checkpoint terlatih |
-| `IKN_DATA_DIR` | `data/` di folder utama proyek | Subfolder `raw/`, `processed/`, `external/`, dan `predictions/` |
-| `IKN_NOTEBOOKS_DIR` | `notebooks/` di folder utama proyek | Notebook asli dan output topik tersimpan |
-| `INDOBERT_DEVICE` | `cpu` | Perangkat serving: `cpu` atau `cuda` |
-| `TOP2VEC_MODEL_DIR` | `dashboard/models/top2vec` | Tiga model Top2Vec lokal; juga dipakai CLI training |
-| `TOP2VEC_REPORT_DIR` | `dashboard/reports` | Laporan `topics.json`; juga dipakai CLI training |
-| `PORT` | `5000` | Port Flask lokal |
-| `FRONTEND_URL` | `http://localhost:3000` | Origin frontend yang diizinkan melakukan prediksi |
-| `IKN_TRUSTED_HOSTS` | `localhost,127.0.0.1,[::1]` | Daftar Host backend yang diterima, dipisahkan koma |
-| `FLASK_API_URL` | `http://127.0.0.1:5000` | URL Flask pada konfigurasi proxy Next.js |
+| `INDOBERT_MODEL_DIR` | `dashboard/models/indobert-ikn` | Fine-tuned checkpoint |
+| `IKN_DATA_DIR` | `data/` at the repository root | Contains `raw/`, `processed/`, `external/`, and `predictions/` |
+| `IKN_NOTEBOOKS_DIR` | `notebooks/` at the repository root | Original notebooks and saved topic outputs |
+| `INDOBERT_DEVICE` | `cpu` | Serving device: `cpu` or `cuda` |
+| `TOP2VEC_MODEL_DIR` | `dashboard/models/top2vec` | Three local Top2Vec models; also used by the training CLI |
+| `TOP2VEC_REPORT_DIR` | `dashboard/reports` | Directory containing `topics.json`; also used by the training CLI |
+| `PORT` | `5000` | Local Flask port |
+| `FRONTEND_URL` | `http://localhost:3000` | Frontend origin allowed to submit predictions |
+| `IKN_TRUSTED_HOSTS` | `localhost,127.0.0.1,[::1]` | Comma-separated list of accepted backend hosts |
+| `FLASK_API_URL` | `http://127.0.0.1:5000` | Flask URL used by the Next.js proxy |
 
-## Pengujian
+## Testing
 
 ```bash
 python -m unittest discover -s tests -v
@@ -326,18 +326,18 @@ npm run build
 npm run test:render
 ```
 
-Tes memeriksa data asli, output notebook, urutan label, cleaning, pemotongan token IndoNLU, metrik CSV, kontrak API Flask, laporan topik, dan proxy/request frontend. Pengujian integrasi topik memakai test double dengan kontrak Top2Vec untuk memeriksa pemilihan model, caching, kosakata asing, cosine tidak valid, dan hasil sentimen saat Top2Vec tidak tersedia. Tes rendering komponen memeriksa hasil topik, fallback, escaping, dan perbedaan cosine dengan persentase. Tes API membutuhkan Flask terpasang. Verifikasi training dan inferensi Top2Vec sungguhan membutuhkan dependensi serta artefak model.
+Tests cover the original data, notebook outputs, label ordering, cleaning, IndoNLU token truncation, CSV metrics, Flask API contracts, topic reports, and frontend proxy/request behaviour. Topic integration tests use a test double matching the Top2Vec contract to check model selection, caching, unknown vocabulary, invalid cosine values, and sentiment results when Top2Vec is unavailable. Component rendering tests check topic results, fallbacks, escaping, and the distinction between cosine values and percentages. API tests require Flask. Verifying real Top2Vec training and inference requires its dependencies and model artifacts.
 
-`test:render` memeriksa rendering produksi kelima halaman, menu sidebar aktif, pemisahan konten, pilihan sumber topik, nonce CSP per halaman, nonce script, serta header tanpa membuka port jaringan. Jalankan setelah build. Pengujian ini tidak menggantikan pemeriksaan visual dan interaksi di browser.
+`test:render` checks production rendering for all five pages, active sidebar links, page content isolation, topic source selection, per-page CSP nonces, script nonces, and headers without opening a network port. Run it after a build. This check does not replace visual and interaction testing in a browser.
 
-Prediksi berjalan setelah tombol **Analisis kalimat** ditekan, dengan batas 2.000 karakter, satu inferensi aktif per proses backend, dan 30 percobaan per menit per proses. Request berlebih menerima HTTP 429; model yang sedang sibuk menerima HTTP 503. Kedua respons menyertakan `Retry-After`.
+Predictions run when **Analisis kalimat** (Analyze sentence) is selected, with a 2,000-character input limit, one active inference per backend process, and 30 attempts per minute per process. Excess requests receive HTTP 429, and a busy model returns HTTP 503. Both responses include `Retry-After`.
 
-Area kerja menggunakan palet cream white, dengan aksen sage untuk tindakan utama dan warna berbeda untuk setiap sentimen.
+The workspace uses a cream white palette, sage accents for primary actions, and distinct colours for each sentiment.
 
-## Referensi
+## References
 
-- [Source IndoNLU: dataset dan data loader](https://github.com/IndoNLP/indonlu/blob/master/utils/data_utils.py)
-- [Panduan fine-tuning IndoNLU](https://github.com/IndoNLP/indonlu/wiki/Quickstart-~-Fine-Tune)
+- [IndoNLU source: datasets and data loaders](https://github.com/IndoNLP/indonlu/blob/master/utils/data_utils.py)
+- [IndoNLU fine-tuning guide](https://github.com/IndoNLP/indonlu/wiki/Quickstart-~-Fine-Tune)
 - [Pretrained IndoBERT base p1](https://huggingface.co/indobenchmark/indobert-base-p1)
 - [Next.js App Router](https://nextjs.org/docs/app)
 - [Next.js API rewrites](https://nextjs.org/docs/app/api-reference/config/next-config-js/rewrites)

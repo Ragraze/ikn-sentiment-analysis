@@ -1,166 +1,166 @@
 # IKN Sentiment Lab [Thesis]
 
-Dashboard penelitian untuk mengeksplorasi opini tentang **Ibu Kota Nusantara (IKN)**, mengklasifikasikan sentimen dengan **IndoBERT**, dan memodelkan topik percakapan dengan **Top2Vec**. Repository ini menyimpan dataset, notebook penelitian, aplikasi web, API, serta skrip training dan evaluasi.
+A research dashboard for exploring public opinions about **Ibu Kota Nusantara (IKN)**, Indonesia's new capital, classifying sentiment with **IndoBERT**, and discovering discussion topics with **Top2Vec**. This repository contains the datasets, research notebooks, web application, API, and training and evaluation scripts.
 
-Frontend memakai Next.js, React, dan TypeScript; backend memakai Flask dan menjalankan model secara lokal. Aplikasi tidak memerlukan API key layanan AI. Akses internet diperlukan saat memasang dependensi, menyiapkan resource NLTK, dan mengunduh backbone untuk training pertama.
+The frontend uses Next.js, React, and TypeScript. The Flask backend runs the models locally, so the application does not require an AI service API key. Internet access is needed to install dependencies, prepare NLTK resources, and download the backbone for the first training run.
 
-## Daftar isi
+## Table of contents
 
-- [Fitur aplikasi](#fitur-aplikasi)
-- [Arsitektur dan alur analisis](#arsitektur-dan-alur-analisis)
-- [Teknologi](#teknologi)
-- [Struktur repository](#struktur-repository)
-- [Dataset dan hasil penelitian](#dataset-dan-hasil-penelitian)
-- [Prasyarat](#prasyarat)
-- [Instalasi dan menjalankan aplikasi](#instalasi-dan-menjalankan-aplikasi)
-- [Menyiapkan model](#menyiapkan-model)
-- [Dokumentasi dan penggunaan API](#dokumentasi-dan-penggunaan-api)
-- [Konfigurasi environment](#konfigurasi-environment)
-- [Pengujian dan build](#pengujian-dan-build)
+- [Application features](#application-features)
+- [Architecture and analysis flow](#architecture-and-analysis-flow)
+- [Technology stack](#technology-stack)
+- [Repository structure](#repository-structure)
+- [Datasets and research results](#datasets-and-research-results)
+- [Prerequisites](#prerequisites)
+- [Installation and startup](#installation-and-startup)
+- [Model setup](#model-setup)
+- [API documentation and usage](#api-documentation-and-usage)
+- [Environment configuration](#environment-configuration)
+- [Testing and builds](#testing-and-builds)
 - [Troubleshooting](#troubleshooting)
-- [Batasan dan interpretasi hasil](#batasan-dan-interpretasi-hasil)
-- [Panduan lanjutan](#panduan-lanjutan)
+- [Limitations and interpretation](#limitations-and-interpretation)
+- [Further documentation](#further-documentation)
 
-## Fitur aplikasi
+## Application features
 
-| Halaman | Route | Fitur |
+| Page | Route | Features |
 | --- | --- | --- |
-| Dashboard penelitian | `/` | Jumlah opini dan pembagian dataset, proporsi sentimen, perbandingan train/validation/test, ringkasan topik, dan status model |
-| Analisis kalimat | `/analysis` | Prediksi tiga sentimen, skor setiap kelas, teks hasil preprocessing, dan topik terdekat sesuai sentimen |
-| Dataset opini | `/dataset` | Pencarian teks, filter bagian data dan sentimen, pagination, perluasan teks panjang, serta ekspor CSV |
-| Pemodelan topik | `/topics` | Kelompok topik per sentimen, kata kunci, bobot kata jika tersedia, dan coherence score dari notebook atau training proyek |
-| Evaluasi model | `/evaluation` | Akurasi, Macro F1, confusion matrix, precision, recall, F1, dan support dari CSV prediksi notebook |
+| Research dashboard | `/` | Opinion counts and dataset splits, sentiment proportions, train/validation/test comparisons, topic summaries, and model status |
+| Sentence analysis | `/analysis` | Three-class sentiment prediction, scores for each class, preprocessed text, and the closest topics within the predicted sentiment |
+| Opinion dataset | `/dataset` | Text search, dataset split and sentiment filters, pagination, expandable opinion text, and CSV export |
+| Topic modelling | `/topics` | Topics grouped by sentiment, keywords, word weights where available, and coherence scores from notebook outputs or project training |
+| Model evaluation | `/evaluation` | Accuracy, Macro F1, confusion matrix, precision, recall, F1, and support calculated from the notebook prediction CSV |
 
-Area konten menggunakan warna cream white dengan aksen sage. Sidebar tersedia di desktop dan menjadi menu yang bisa dibuka di ponsel. Grafik dan ringkasan memakai data API.
+The content area uses a cream white palette with sage accents. The sidebar appears on desktop and becomes a collapsible menu on mobile. Charts and summaries use API data.
 
-Pada halaman analisis, **Ctrl/Cmd + Enter** menjalankan prediksi. Tersedia contoh kalimat, salin hasil, pembatalan request, dan urungkan pengosongan isian. Kalimat dan hasil terakhir bertahan saat berpindah menu, lalu kosong ketika halaman dimuat ulang.
+On the analysis page, **Ctrl/Cmd + Enter** submits a prediction. The page also provides example sentences, result copying, request cancellation, and an option to undo clearing the input. The latest sentence and result remain available while navigating between pages and reset when the page is reloaded.
 
-Ekspor CSV mengikuti pencarian dan filter aktif, mencakup seluruh hasil filter tanpa dibatasi halaman yang sedang dibuka. Tabel menyediakan pilihan 8, 16, 32, atau 50 opini per halaman.
+CSV exports follow the active search and filters and include all matching rows, regardless of the current page. The dataset table supports 8, 16, 32, or 50 opinions per page.
 
-## Arsitektur dan alur analisis
+## Architecture and analysis flow
 
 ```mermaid
 flowchart LR
-    User[Pengguna] --> Web[Dashboard Next.js]
-    Web --> Proxy[Proxy /api Next.js]
+    User[User] --> Web[Next.js dashboard]
+    Web --> Proxy[Next.js /api proxy]
     Proxy --> API[Flask API]
-    API --> Data[Dataset dan output notebook]
-    API --> Prep[Preprocessing notebook]
-    Prep --> BERT[IndoBERT lokal]
-    BERT --> Sentiment[Sentimen dan skor kelas]
-    Sentiment --> Topics[Top2Vec sesuai sentimen]
-    Topics --> Result[Topik, kata kunci, dan cosine similarity]
+    API --> Data[Datasets and notebook outputs]
+    API --> Prep[Notebook preprocessing]
+    Prep --> BERT[Local IndoBERT]
+    BERT --> Sentiment[Sentiment and class scores]
+    Sentiment --> Topics[Top2Vec for the predicted sentiment]
+    Topics --> Result[Topics, keywords, and cosine similarity]
 ```
 
-Untuk kalimat baru, backend membersihkan teks, melakukan tokenisasi, menghapus kata sesuai kamus slang/stopword serta korpus kata Inggris, lalu menjalankan stemming Sastrawi. Teks tersebut masuk ke tokenizer IndoBERT dan classifier tiga kelas: `positive`, `neutral`, atau `negative`.
+For a new sentence, the backend cleans and tokenizes the text, removes words using the slang and stopword dictionaries and the English word corpus, and applies Sastrawi stemming. The result is passed to the IndoBERT tokenizer and a three-class classifier: `positive`, `neutral`, or `negative`.
 
-Sentimen yang diprediksi menentukan model Top2Vec yang digunakan untuk mencari topik terdekat. Hasil menampilkan hingga tiga topik, kata kunci, bobot, jumlah dokumen, dan kemiripan cosine. Jika model topik belum tersedia atau tidak menemukan kecocokan, hasil sentimen tetap dikembalikan dengan penjelasan status topik.
+The predicted sentiment determines which Top2Vec model searches for the closest topics. Results include up to three topics, keywords, word weights, document counts, and cosine similarity. If the topic model is unavailable or finds no match, the sentiment result is still returned with an explanation of the topic status.
 
-Browser mengakses `/api/*` melalui origin frontend; Next.js meneruskan request ke Flask. Model dimuat saat pertama kali dipakai dan disimpan dalam memori setiap proses backend. Training dijalankan lewat CLI, terpisah dari request pengguna.
+The browser accesses `/api/*` through the frontend origin, and Next.js forwards requests to Flask. Models are loaded on first use and cached in memory within each backend process. Training runs through the CLI, separately from user requests.
 
-## Teknologi
+## Technology stack
 
-| Bagian | Teknologi |
+| Component | Technology |
 | --- | --- |
 | Frontend | Next.js `16.4.3`, React `19.2.7`, TypeScript `6.0.3`, CSS |
 | Backend | Python, Flask `>=3.1,<4` |
-| Klasifikasi sentimen | PyTorch, Transformers, safetensors, `indobenchmark/indobert-base-p1` |
-| Preprocessing | NLTK, Sastrawi, kamus lokal |
-| Pemodelan topik | Top2Vec dengan embedding Doc2Vec; gensim untuk coherence `c_v` |
-| Dokumentasi API | OpenAPI `3.0.3` dan Swagger UI |
-| Pengujian | Python `unittest`, Node.js test runner, TypeScript, pemeriksaan render produksi |
+| Sentiment classification | PyTorch, Transformers, safetensors, `indobenchmark/indobert-base-p1` |
+| Preprocessing | NLTK, Sastrawi, local dictionaries |
+| Topic modelling | Top2Vec with Doc2Vec embeddings; gensim for `c_v` coherence |
+| API documentation | OpenAPI `3.0.3` and Swagger UI |
+| Testing | Python `unittest`, the Node.js test runner, TypeScript, and production rendering checks |
 
-Dependensi backend ada di [requirements.txt](dashboard/requirements.txt), dependensi Top2Vec di [requirements-topics.txt](dashboard/requirements-topics.txt), dan versi frontend di [package.json](dashboard/frontend/package.json) beserta lockfile-nya.
+Backend dependencies are listed in [requirements.txt](dashboard/requirements.txt), Top2Vec dependencies in [requirements-topics.txt](dashboard/requirements-topics.txt), and frontend versions in [package.json](dashboard/frontend/package.json) and its lockfile.
 
-## Struktur repository
+## Repository structure
 
 ```text
 sentiment-analysis/
 ├── README.md
 ├── Makefile
 ├── data/
-│   ├── raw/                 # CSV opini berlabel untuk eksplorasi
-│   ├── processed/           # TSV input training dan evaluasi IndoBERT
-│   ├── external/            # Kamus slang dan stopword
-│   └── predictions/         # CSV prediksi penelitian yang tersimpan
+│   ├── raw/                 # Labelled opinion CSVs for exploration
+│   ├── processed/           # TSV inputs for IndoBERT training and evaluation
+│   ├── external/            # Slang and stopword dictionaries
+│   └── predictions/         # Saved research prediction CSVs
 ├── notebooks/
 │   ├── Preprocessing_Datasets_IKN.ipynb
 │   ├── Sentimen_Analysis_IKN_IndoBERT.ipynb
 │   └── Topic_Modelling_of_IKN.ipynb
 └── dashboard/
-    ├── README.md            # Panduan teknis aplikasi dan pipeline penelitian
-    ├── config/              # Konfigurasi primary run notebook
+    ├── README.md            # Application and research pipeline guide
+    ├── config/              # Configuration from the primary notebook run
     ├── frontend/
-    │   ├── src/app/         # Route, layout, dan stylesheet
-    │   ├── src/components/  # Komponen bersama dan navigasi
-    │   ├── src/features/    # Fitur tiap halaman
-    │   ├── src/hooks/       # Pengambilan resource API
-    │   ├── src/lib/         # Kontrak data dan utilitas
-    │   └── tests/           # Pengujian API client, topik, dan render
-    ├── server/              # Flask, preprocessing, inference, data, dan OpenAPI
-    ├── scripts/             # Setup, impor checkpoint, training, dan evaluasi
-    ├── tests/               # Pengujian backend
-    ├── models/              # Checkpoint lokal; isinya diabaikan Git
-    ├── reports/             # Laporan lokal; isinya diabaikan Git
-    ├── notebook_export.py   # Ekspor model dari runtime notebook
+    │   ├── src/app/         # Routes, layout, and stylesheets
+    │   ├── src/components/  # Shared components and navigation
+    │   ├── src/features/    # Page features
+    │   ├── src/hooks/       # API resource fetching
+    │   ├── src/lib/         # Data contracts and utilities
+    │   └── tests/           # API client, topic, and rendering tests
+    ├── server/              # Flask, preprocessing, inference, data, and OpenAPI
+    ├── scripts/             # Setup, checkpoint import, training, and evaluation
+    ├── tests/               # Backend tests
+    ├── models/              # Local checkpoints; contents ignored by Git
+    ├── reports/             # Local reports; contents ignored by Git
+    ├── notebook_export.py   # Model export from a notebook runtime
     ├── requirements.txt
     ├── requirements-topics.txt
-    └── run.py               # Entrypoint backend
+    └── run.py               # Backend entrypoint
 ```
 
-Checkpoint, hasil training, cache, virtual environment, `node_modules`, build Next.js, dan konfigurasi `.env.local` tidak disimpan di GitHub. Folder `models/` dan `reports/` dipertahankan melalui `.gitkeep`; clone baru perlu menyiapkan model sendiri.
+Checkpoints, training outputs, caches, virtual environments, `node_modules`, Next.js builds, and `.env.local` configuration are excluded from GitHub. The `models/` and `reports/` directories are retained through `.gitkeep`; a fresh clone requires its own model setup.
 
-## Dataset dan hasil penelitian
+## Datasets and research results
 
-CSV asli digunakan untuk eksplorasi; TSV hasil preprocessing digunakan untuk training dan evaluasi IndoBERT. Jumlah baris keduanya berbeda:
+The original CSVs are used for exploration, while the preprocessed TSVs are used for IndoBERT training and evaluation. Their row counts differ:
 
-| Bagian | CSV asli | TSV hasil preprocessing |
+| Split | Original CSV | Preprocessed TSV |
 | --- | ---: | ---: |
-| Train | 7.512 | 7.498 |
-| Validation | 2.504 | 2.502 |
-| Test | 2.504 | 2.501 |
-| **Total** | **12.520** | **12.501** |
+| Train | 7,512 | 7,498 |
+| Validation | 2,504 | 2,502 |
+| Test | 2,504 | 2,501 |
+| **Total** | **12,520** | **12,501** |
 
-Distribusi label pada seluruh CSV asli adalah **8.734 negatif**, **1.846 netral**, dan **1.940 positif**. Label sumber tetap ditampilkan sebagai `negative`, `neutral`, dan `positive` pada API.
+Across the original CSVs, the label distribution is **8,734 negative**, **1,846 neutral**, and **1,940 positive** opinions. The API uses the source labels `negative`, `neutral`, and `positive`.
 
-File CSV eksplorasi memiliki kolom `text` dan `label`. TSV hasil preprocessing memiliki dua kolom tanpa header: teks dan label. CSV prediksi penelitian menyimpan kolom `text`, `sentiment`, dan `sentiment_predict`.
+The exploration CSVs contain `text` and `label` columns. Preprocessed TSVs contain two columns without a header: text and label. The research prediction CSVs contain `text`, `sentiment`, and `sentiment_predict` columns.
 
-Halaman evaluasi menghitung ulang metrik dari [test_with_predictions new.csv](<data/predictions/test_with_predictions new.csv>), berisi 2.501 opini:
+The evaluation page recalculates metrics from [test_with_predictions new.csv](<data/predictions/test_with_predictions new.csv>), which contains 2,501 opinions:
 
-| Metrik | Hasil notebook |
+| Metric | Notebook result |
 | --- | ---: |
-| Akurasi | 77,61% |
-| Macro F1 | 0,6393 |
-| F1 positif | 0,6454 |
-| F1 netral | 0,4098 |
-| F1 negatif | 0,8627 |
+| Accuracy | 77.61% |
+| Macro F1 | 0.6393 |
+| Positive F1 | 0.6454 |
+| Neutral F1 | 0.4098 |
+| Negative F1 | 0.8627 |
 
-Angka tersebut berasal dari prediksi penelitian yang tersimpan. Evaluasi checkpoint lokal dilakukan terpisah melalui `scripts/evaluate.py`; hasilnya dapat berbeda dari metrik notebook. API memeriksa fingerprint checkpoint sebelum menyajikan laporan evaluasi lokal.
+These figures come from saved research predictions. Local checkpoint evaluation runs separately through `scripts/evaluate.py` and may produce different metrics. The API checks the checkpoint fingerprint before serving a local evaluation report.
 
-Lihat [keterangan data](data/README.md) dan [urutan notebook](notebooks/README.md) untuk penempatan sumber dan alur eksperimen.
+See the [data guide](data/README.md) and [notebook guide](notebooks/README.md) for source locations and the experiment workflow.
 
-## Prasyarat
+## Prerequisites
 
-- Python **3.10 atau lebih baru**; panduan aplikasi menggunakan Python 3.11/3.12.
-- Node.js **20.9 atau lebih baru** dan npm.
-- Git; `make` bersifat opsional untuk menjalankan perintah ringkas.
-- Internet untuk instalasi paket, resource NLTK, serta unduhan awal backbone training.
-- Checkpoint IndoBERT hasil fine-tuning untuk prediksi kalimat. GPU bersifat opsional; serving memakai CPU secara default.
+- Python **3.10 or newer**; the application guide uses Python 3.11/3.12.
+- Node.js **20.9 or newer** and npm.
+- Git; `make` is optional and provides shortcuts for common commands.
+- Internet access for package installation, NLTK resources, and the initial training backbone download.
+- A fine-tuned IndoBERT checkpoint for sentence predictions. A GPU is optional; serving uses the CPU by default.
 
-Dependensi Top2Vec dipasang terpisah saat diperlukan untuk training atau pencocokan topik kalimat. Eksplorasi data, evaluasi historis, dan laporan topik notebook dapat digunakan sebelum checkpoint lokal terpasang.
+Top2Vec dependencies are installed separately when needed for training or sentence-to-topic matching. Dataset exploration, historical evaluation, and notebook topic reports are available before local checkpoints are installed.
 
-## Instalasi dan menjalankan aplikasi
+## Installation and startup
 
-### 1. Clone repository
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/Ragraze/sentiment-analysis.git
 cd sentiment-analysis
 ```
 
-### 2. Siapkan backend
+### 2. Set up the backend
 
-Dari folder utama repository, jalankan pada terminal pertama:
+From the repository root, run the following in the first terminal:
 
 ```bash
 cd dashboard
@@ -171,15 +171,15 @@ python scripts/setup_nltk.py
 python run.py
 ```
 
-Backend berjalan di **http://127.0.0.1:5000**. Pada Windows PowerShell, gunakan `py -3 -m venv .venv` untuk membuat environment dan `.\.venv\Scripts\Activate.ps1` untuk mengaktifkannya, lalu lanjutkan perintah `python` yang sama.
+The backend runs at **http://127.0.0.1:5000**. In Windows PowerShell, create the environment with `py -3 -m venv .venv`, activate it with `.\.venv\Scripts\Activate.ps1`, and then continue with the same `python` commands.
 
-Langkah ini sudah cukup untuk menjalankan API dataset dan hasil historis. Untuk menggunakan prediksi kalimat, lanjutkan [penyiapan model](#menyiapkan-model). Status checkpoint yang belum tersedia dapat dilihat di `/api/health` dan panel layanan analisis.
+These steps are sufficient to serve dataset APIs and historical results. To enable sentence predictions, continue with [model setup](#model-setup). Missing checkpoints are reported through `/api/health` and the analysis service status panel.
 
-Pada Linux/WSL, tersedia alternatif `bash scripts/setup_backend.sh`. Skrip memasang PyTorch CPU, dependensi, resource NLTK, menjalankan tes, lalu mencoba prediksi sungguhan. **Siapkan checkpoint terlebih dahulu jika memakai skrip ini**; tanpa checkpoint, tahap verifikasi prediksi akan gagal walaupun instalasi dependensi sudah selesai.
+On Linux/WSL, `bash scripts/setup_backend.sh` is available as an alternative. It installs CPU PyTorch, dependencies, and NLTK resources, runs tests, and attempts a real prediction. **Prepare the checkpoint before using this script**; without it, prediction verification fails even if dependency installation has completed.
 
-### 3. Siapkan frontend
+### 3. Set up the frontend
 
-Buka terminal kedua dari folder utama repository:
+Open a second terminal at the repository root:
 
 ```bash
 cd dashboard/frontend
@@ -187,21 +187,21 @@ npm ci
 npm run dev
 ```
 
-Buka **[http://localhost:3000](http://localhost:3000)**. Backend dan frontend perlu tetap berjalan pada terminal masing-masing. Hentikan layanan dengan **Ctrl + C**.
+Open **[http://localhost:3000](http://localhost:3000)**. Keep the backend and frontend running in their respective terminals. Stop either service with **Ctrl + C**.
 
-### 4. Periksa layanan
+### 4. Check the services
 
-| Layanan | Alamat lokal |
+| Service | Local address |
 | --- | --- |
 | Dashboard | http://localhost:3000 |
-| Informasi backend | http://127.0.0.1:5000/ |
-| Status model | http://127.0.0.1:5000/api/health |
+| Backend information | http://127.0.0.1:5000/ |
+| Model status | http://127.0.0.1:5000/api/health |
 | Swagger UI | http://127.0.0.1:5000/api/docs/ |
-| Spesifikasi OpenAPI | http://127.0.0.1:5000/api/openapi.json |
+| OpenAPI specification | http://127.0.0.1:5000/api/openapi.json |
 
-Swagger juga dapat dibuka melalui http://localhost:3000/api/docs/ ketika kedua layanan berjalan.
+Swagger is also available at http://localhost:3000/api/docs/ when both services are running.
 
-Untuk pemakaian berikutnya, tidak perlu mengulang instalasi atau training. Jalankan dari folder utama pada dua terminal terpisah:
+For subsequent use, installation and training do not need to be repeated. Run these commands from the repository root in two separate terminals:
 
 ```bash
 make backend
@@ -211,48 +211,48 @@ make backend
 make frontend
 ```
 
-Jika tidak memakai `make`, jalankan `dashboard/.venv/bin/python dashboard/run.py` untuk backend dan `npm --prefix dashboard/frontend run dev` untuk frontend.
+Without `make`, run `dashboard/.venv/bin/python dashboard/run.py` for the backend and `npm --prefix dashboard/frontend run dev` for the frontend.
 
-## Menyiapkan model
+## Model setup
 
-Semua perintah pada bagian ini dijalankan dari folder `dashboard/` dengan virtual environment aktif. Pilih impor checkpoint yang sudah dilatih atau training baru untuk IndoBERT; keduanya tidak perlu dijalankan bersamaan.
+Run all commands in this section from `dashboard/` with the virtual environment active. For IndoBERT, either import an existing fine-tuned checkpoint or train a new one; only one of these steps is needed.
 
-### Mengimpor checkpoint IndoBERT dari Colab
+### Import an IndoBERT checkpoint from Colab
 
-Siapkan ZIP hasil fine-tuning sendiri; arsip dan bobot model tidak disertakan dalam repository. Contoh jika ZIP disimpan dengan nama berikut:
+Provide your own fine-tuned model ZIP; archives and model weights are excluded from the repository. For example, if the archive has the following filename:
 
 ```bash
 python scripts/import_checkpoint.py models/indobert_model_3e6.zip
 ```
 
-Skrip memasang checkpoint di `models/indobert-ikn/`, memeriksa bobot classifier tiga kelas, merapikan konfigurasi label, dan membuat `serving.json`. Folder tujuan yang sudah berisi file tidak ditimpa. Untuk checkpoint lain, gunakan `--output models/model-lain`, lalu sesuaikan `INDOBERT_MODEL_DIR`.
+The script installs the checkpoint into `models/indobert-ikn/`, checks the three-class classifier weights, normalizes the label configuration, and creates `serving.json`. An existing non-empty destination is not overwritten. To install another checkpoint, use `--output models/model-lain` and update `INDOBERT_MODEL_DIR`.
 
-Checkpoint harus berisi model hasil fine-tuning, bukan hanya backbone pretrained. Jika model masih tersedia di runtime notebook, gunakan [panduan ekspor runtime Colab](dashboard/README.md#ekspor-dari-runtime-notebook-yang-sudah-dilatih).
+The checkpoint must contain a fine-tuned classifier rather than only a pretrained backbone. If the trained model is still available in the notebook runtime, follow the [Colab runtime export guide](dashboard/README.md#exporting-from-a-trained-notebook-runtime).
 
-### Melatih IndoBERT dari dataset proyek
+### Train IndoBERT on the project dataset
 
 ```bash
 python scripts/train.py
 python scripts/evaluate.py
 ```
 
-Konfigurasi default berasal dari [config/notebook.json](dashboard/config/notebook.json):
+Defaults come from [config/notebook.json](dashboard/config/notebook.json):
 
 | Parameter | Default |
 | --- | --- |
 | Backbone | `indobenchmark/indobert-base-p1` |
-| Indeks label | `0: positive`, `1: neutral`, `2: negative` |
+| Label indices | `0: positive`, `1: neutral`, `2: negative` |
 | Optimizer | Adam |
 | Learning rate | `3e-6` |
-| Epoch | `5` |
+| Epochs | `5` |
 | Batch size | `32` |
-| Panjang maksimum | `512` token |
+| Maximum length | `512` tokens |
 | Seed | `42` |
-| Perangkat training | CUDA jika tersedia, selain itu CPU |
+| Training device | CUDA when available, otherwise CPU |
 
-Training memakai TSV train dan validation; checkpoint akhir disimpan sesuai epoch terakhir. Evaluasi test dijalankan terpisah dan menghasilkan `reports/test.json` serta `reports/test_with_predictions.csv`.
+Training uses the train and validation TSVs and saves the final-epoch checkpoint. Test evaluation runs separately and generates `reports/test.json` and `reports/test_with_predictions.csv`.
 
-Untuk menyesuaikan perangkat atau batch size:
+To adjust the device or batch size:
 
 ```bash
 python scripts/train.py --batch-size 8 --device cpu
@@ -260,11 +260,11 @@ python scripts/train.py --help
 python scripts/evaluate.py --help
 ```
 
-Training CPU dapat memerlukan waktu lama. Mengubah parameter dapat mengubah hasil penelitian. Skrip training memerlukan `--overwrite` untuk mengganti checkpoint yang sudah ada.
+CPU training can take a long time. Changing parameters can change the research results. The training script requires `--overwrite` to replace an existing checkpoint.
 
-### Melatih Top2Vec
+### Train Top2Vec
 
-Setelah CSV prediksi checkpoint tersedia:
+Once the checkpoint prediction CSV is available:
 
 ```bash
 python -m pip install -r requirements-topics.txt
@@ -272,15 +272,15 @@ python scripts/setup_nltk.py
 python scripts/train_topics.py
 ```
 
-Untuk memakai CSV prediksi penelitian yang sudah tersimpan:
+To use the saved research prediction CSV:
 
 ```bash
 python scripts/train_topics.py --predictions "../data/predictions/test_with_predictions_and_coherence.csv"
 ```
 
-Pipeline membentuk satu model per sentimen menggunakan embedding `doc2vec`, `speed=deep-learn`, dan `min_count=10`, lalu menghitung coherence `c_v`. Setiap sentimen membutuhkan minimal 20 dokumen; keberhasilan pembentukan cluster juga bergantung pada keragaman korpus.
+The pipeline trains one model per sentiment using `doc2vec` embeddings, `speed=deep-learn`, and `min_count=10`, then calculates `c_v` coherence. Each sentiment requires at least 20 documents; successful clustering also depends on corpus diversity.
 
-Hasil disimpan di:
+Outputs are saved to:
 
 ```text
 models/top2vec/model_top2vec_positive
@@ -289,37 +289,37 @@ models/top2vec/model_top2vec_negative
 reports/topics.json
 ```
 
-Restart backend setelah memasang atau mengganti model. Halaman topik memakai sumber **Hasil training proyek** secara default; pilih **Hasil notebook** untuk melihat output penelitian yang sudah tersimpan tanpa melatih ulang Top2Vec.
+Restart the backend after installing or replacing models. The topic page defaults to **Hasil training proyek** (Project training results). Select **Hasil notebook** (Notebook results) to view saved research outputs without retraining Top2Vec.
 
-## Dokumentasi dan penggunaan API
+## API documentation and usage
 
 - **Swagger UI:** http://127.0.0.1:5000/api/docs/
 - **OpenAPI JSON:** http://127.0.0.1:5000/api/openapi.json
 
-Pada Swagger, buka endpoint, klik **Try it out**, isi parameter, lalu **Execute**. Request prediksi menjalankan model lokal sungguhan dan mengikuti batas pemakaian API.
+In Swagger, expand an endpoint, click **Try it out**, enter the parameters, and select **Execute**. Prediction requests run the local model and follow the API request limits.
 
-| Method | Endpoint | Kegunaan |
+| Method | Endpoint | Purpose |
 | --- | --- | --- |
-| `GET` | `/api/health` | Status checkpoint dan model IndoBERT/Top2Vec |
-| `GET` | `/api/summary` | Jumlah opini, distribusi sentimen, pembagian data, dan topik notebook |
-| `GET` | `/api/dataset` | Pencarian dan filter opini dengan pagination |
-| `GET` | `/api/dataset/export` | Ekspor seluruh hasil filter ke CSV |
-| `POST` | `/api/predict` | Prediksi sentimen dan pencocokan topik kalimat |
-| `GET` | `/api/topics` | Laporan topik dengan `source=notebook` atau `trained`; default `notebook` |
-| `GET` | `/api/evaluation` | Evaluasi dengan `source=checkpoint` atau `notebook`; default `checkpoint` |
+| `GET` | `/api/health` | Checkpoint and model status for IndoBERT and Top2Vec |
+| `GET` | `/api/summary` | Opinion counts, sentiment distribution, dataset splits, and notebook topics |
+| `GET` | `/api/dataset` | Opinion search and filtering with pagination |
+| `GET` | `/api/dataset/export` | Export all filtered opinions as CSV |
+| `POST` | `/api/predict` | Sentence sentiment prediction and topic matching |
+| `GET` | `/api/topics` | Topic reports with `source=notebook` or `trained`; defaults to `notebook` |
+| `GET` | `/api/evaluation` | Evaluation with `source=checkpoint` or `notebook`; defaults to `checkpoint` |
 
-### Contoh request
+### Request examples
 
-Periksa status dan baca dataset terfilter:
+Check the service status and read a filtered dataset page:
 
 ```bash
 curl http://127.0.0.1:5000/api/health
 curl "http://127.0.0.1:5000/api/dataset?q=nusantara&split=test&label=negative&page=1&page_size=8"
 ```
 
-Parameter dataset: `q` maksimal 200 karakter; `split` berupa `all`, `train`, `val`, atau `test`; `label` berupa `all`, `positive`, `neutral`, atau `negative`; `page` dimulai dari 1; `page_size` menerima 1–50. Parameter tidak boleh berulang.
+Dataset parameters: `q` allows up to 200 characters; `split` accepts `all`, `train`, `val`, or `test`; `label` accepts `all`, `positive`, `neutral`, or `negative`; `page` starts at 1; and `page_size` accepts 1–50. Repeated query parameters are rejected.
 
-Prediksi satu opini:
+Predict the sentiment of an Indonesian opinion:
 
 ```bash
 curl -X POST http://127.0.0.1:5000/api/predict \
@@ -327,9 +327,9 @@ curl -X POST http://127.0.0.1:5000/api/predict \
   -d '{"text":"Saya mendukung pembangunan ibu kota Nusantara."}'
 ```
 
-Respons berhasil memiliki `label`, `confidence`, `scores`, `normalized`, `model`, `base_model`, dan `topic_analysis`. Skor kelas berada pada rentang 0–1. Status topik menjelaskan apakah model tersedia dan apakah kalimat cocok dengan suatu topik.
+A successful response contains `label`, `confidence`, `scores`, `normalized`, `model`, `base_model`, and `topic_analysis`. Class scores range from 0 to 1. The topic status indicates whether a model is available and whether a matching topic was found.
 
-Ambil laporan topik, evaluasi penelitian, atau unduh CSV:
+Retrieve a topic report, historical evaluation, or CSV export:
 
 ```bash
 curl "http://127.0.0.1:5000/api/topics?source=notebook"
@@ -337,83 +337,83 @@ curl "http://127.0.0.1:5000/api/evaluation?source=notebook"
 curl "http://127.0.0.1:5000/api/dataset/export?split=test&label=negative" -o ikn-dataset.csv
 ```
 
-### Validasi dan respons gagal
+### Validation and error responses
 
-Prediksi menerima teks maksimal **2.000 karakter** dengan body request maksimal **16.384 byte**. Backend membatasi **30 percobaan prediksi valid per menit per proses** dan **satu inferensi aktif per proses**.
+Predictions accept up to **2,000 characters** with a maximum request body of **16,384 bytes**. The backend allows **30 valid prediction attempts per minute per process** and **one active inference per process**.
 
-| HTTP | Penyebab umum |
+| HTTP | Common cause |
 | --- | --- |
-| `400` | JSON, teks, filter, atau parameter tidak valid |
-| `403` | Origin request tidak diizinkan |
-| `413` | Body request terlalu besar |
-| `415` | Request prediksi tidak memakai `application/json` |
-| `422` | Teks kosong setelah preprocessing |
-| `429` | Batas prediksi tercapai; lihat header `Retry-After` |
-| `500` | Inferensi gagal; lihat log backend |
-| `503` | Checkpoint/data belum tersedia atau model sedang sibuk; kondisi sibuk menyertakan `Retry-After` |
+| `400` | Invalid JSON, text, filters, or parameters |
+| `403` | Request origin is not allowed |
+| `413` | Request body is too large |
+| `415` | Prediction request does not use `application/json` |
+| `422` | Text is empty after preprocessing |
+| `429` | Prediction limit reached; check the `Retry-After` header |
+| `500` | Inference failed; check the backend logs |
+| `503` | Checkpoint or data is unavailable, or the model is busy; busy responses include `Retry-After` |
 
-`/api/health` tetap dapat mengembalikan HTTP 200 saat model belum siap; periksa `state` dan `ready`. Endpoint laporan topik/evaluasi dapat mengembalikan HTTP 200 dengan `available=false` bila laporan belum tersedia.
+`/api/health` can return HTTP 200 while the model is not ready; inspect `state` and `ready`. Topic and evaluation report endpoints can return HTTP 200 with `available=false` when a report is unavailable.
 
-## Konfigurasi environment
+## Environment configuration
 
-Nilai default sudah cukup untuk penggunaan lokal. Variabel backend dibaca dari environment proses; backend tidak memuat file `.env` secara otomatis.
+The defaults are sufficient for local use. Backend variables are read from the process environment; the backend does not automatically load `.env` files.
 
-| Variabel | Default | Fungsi |
+| Variable | Default | Purpose |
 | --- | --- | --- |
-| `INDOBERT_MODEL_DIR` | `dashboard/models/indobert-ikn/` | Checkpoint IndoBERT hasil fine-tuning |
-| `INDOBERT_DEVICE` | `cpu` | Perangkat serving dan default evaluasi |
-| `IKN_DATA_DIR` | `data/` | Dataset dengan subfolder `raw`, `processed`, `external`, dan `predictions` |
-| `IKN_NOTEBOOKS_DIR` | `notebooks/` | Notebook asli beserta output tersimpan |
-| `TOP2VEC_MODEL_DIR` | `dashboard/models/top2vec/` | Model Top2Vec per sentimen |
-| `TOP2VEC_REPORT_DIR` | `dashboard/reports/` | Lokasi laporan `topics.json` |
-| `PORT` | `5000` | Port backend pada `run.py` |
-| `FRONTEND_URL` | `http://localhost:3000` | Origin frontend yang diizinkan untuk prediksi |
-| `IKN_TRUSTED_HOSTS` | `localhost,127.0.0.1,[::1]` | Host backend yang diizinkan, dipisahkan koma |
-| `FLASK_API_URL` | `http://127.0.0.1:5000` | Origin backend untuk proxy Next.js |
+| `INDOBERT_MODEL_DIR` | `dashboard/models/indobert-ikn/` | Fine-tuned IndoBERT checkpoint |
+| `INDOBERT_DEVICE` | `cpu` | Serving device and default evaluation device |
+| `IKN_DATA_DIR` | `data/` | Dataset directory containing `raw`, `processed`, `external`, and `predictions` |
+| `IKN_NOTEBOOKS_DIR` | `notebooks/` | Original notebooks and saved outputs |
+| `TOP2VEC_MODEL_DIR` | `dashboard/models/top2vec/` | Top2Vec models for each sentiment |
+| `TOP2VEC_REPORT_DIR` | `dashboard/reports/` | Directory containing `topics.json` |
+| `PORT` | `5000` | Backend port used by `run.py` |
+| `FRONTEND_URL` | `http://localhost:3000` | Frontend origin allowed to submit predictions |
+| `IKN_TRUSTED_HOSTS` | `localhost,127.0.0.1,[::1]` | Comma-separated list of allowed backend hosts |
+| `FLASK_API_URL` | `http://127.0.0.1:5000` | Backend origin for the Next.js proxy |
 
-Path default di atas dihitung dari lokasi repository. Untuk konfigurasi path sendiri, gunakan path absolut agar tidak bergantung pada direktori terminal.
+Default paths above are resolved from the repository location. Use absolute paths for custom settings so they do not depend on the terminal's working directory.
 
-Contoh bila backend ingin dijalankan pada port 5001, dari folder `dashboard/`:
+For example, to run the backend on port 5001, from `dashboard/`:
 
 ```bash
 PORT=5001 .venv/bin/python run.py
 ```
 
-Pada terminal frontend, dari folder `dashboard/frontend/`:
+In the frontend terminal, from `dashboard/frontend/`:
 
 ```bash
 cp .env.example .env.local
 ```
 
-Ubah isi `.env.local` menjadi:
+Set `.env.local` to:
 
 ```dotenv
 FLASK_API_URL=http://127.0.0.1:5001
 ```
 
-`FLASK_API_URL` harus berupa origin HTTP/HTTPS tanpa path, query, atau kredensial. Restart Next.js setelah mengubahnya; lakukan build ulang untuk produksi. Jika port atau domain frontend berubah, sesuaikan juga `FRONTEND_URL` di backend.
+`FLASK_API_URL` must be an HTTP/HTTPS origin without a path, query, or credentials. Restart Next.js after changing it and rebuild for production. If the frontend port or domain changes, also update `FRONTEND_URL` in the backend environment.
 
-## Pengujian dan build
+## Testing and builds
 
-Dari folder utama repository, setelah dependensi backend dan frontend terpasang:
+From the repository root, after installing backend and frontend dependencies:
 
 ```bash
 make test
 make build
 ```
 
-`make test` menjalankan tes backend, pemeriksaan TypeScript, dan tes frontend. `make build` membuat build frontend produksi.
+`make test` runs the backend tests, TypeScript checks, and frontend tests. `make build` creates the production frontend build.
 
-| Perintah dari root | Fungsi |
+| Command from the repository root | Purpose |
 | --- | --- |
-| `make backend` | Menjalankan Flask menggunakan `dashboard/.venv/bin/python` |
-| `make frontend` | Menjalankan server development Next.js |
-| `make test-backend` | Menjalankan Python unittest |
-| `make test-frontend` | Memeriksa TypeScript dan menjalankan tes frontend |
-| `make test` | Menjalankan seluruh pemeriksaan di atas |
-| `make build` | Membuat build Next.js produksi |
+| `make backend` | Run Flask with `dashboard/.venv/bin/python` |
+| `make frontend` | Start the Next.js development server |
+| `make test-backend` | Run Python unittest |
+| `make test-frontend` | Check TypeScript and run frontend tests |
+| `make test` | Run the backend and frontend checks above |
+| `make build` | Create a production Next.js build |
 
-Gunakan `make PYTHON=python3 test-backend` jika memakai interpreter lain yang sudah memiliki dependensi. Perintah manual dan pemeriksaan render produksi:
+Use `make PYTHON=python3 test-backend` to select another interpreter with the required dependencies. Manual commands, including the production rendering check:
 
 ```bash
 dashboard/.venv/bin/python -m unittest discover -s dashboard/tests -v
@@ -423,56 +423,56 @@ npm --prefix dashboard/frontend run build
 npm --prefix dashboard/frontend run test:render
 ```
 
-Tes mencakup pembacaan data, output notebook, preprocessing, urutan label, tokenisasi, perhitungan metrik, kontrak API, OpenAPI, pembatasan request, CSV, dan perilaku pencocokan topik. Pemeriksaan render memverifikasi kelima route, navigasi sidebar, dialog ponsel, serta header dan nonce CSP pada build produksi.
+Tests cover data loading, notebook outputs, preprocessing, label ordering, tokenization, metric calculations, API contracts, OpenAPI, request limits, CSV export, and topic matching. Rendering checks verify all five routes, sidebar navigation, the mobile dialog, and production CSP headers and nonces.
 
-Pengujian otomatis memakai test double untuk bagian model tertentu. Keberhasilan tes tersebut tidak menggantikan verifikasi prediksi dengan checkpoint dan model Top2Vec sungguhan.
+Automated tests use test doubles for some model components. These checks do not replace prediction verification with real checkpoints and Top2Vec models.
 
-Untuk menjalankan build frontend produksi, dari root:
+To run the production frontend build from the repository root:
 
 ```bash
 npm --prefix dashboard/frontend run build
 npm --prefix dashboard/frontend start
 ```
 
-Backend tetap dijalankan terpisah. `run.py` mengikat server ke `127.0.0.1` dan menggunakan server bawaan Flask untuk penggunaan lokal; deployment publik memerlukan pengaturan server WSGI, reverse proxy, origin, dan host yang sesuai.
+Run the backend separately. `run.py` binds to `127.0.0.1` and uses Flask's built-in server for local use. Public deployment requires an appropriate WSGI server, reverse proxy, origin, and host configuration.
 
 ## Troubleshooting
 
-| Gejala | Pemeriksaan dan langkah |
+| Symptom | Checks and next steps |
 | --- | --- |
-| Dashboard gagal memuat data | Pastikan Flask berjalan, buka `/api/summary` langsung, lalu cek `FLASK_API_URL` dan port backend |
-| Prediksi gagal dengan `model_unavailable` | Periksa `INDOBERT_MODEL_DIR`, `serving.json`, bobot safetensors, tokenizer, serta log backend; pasang checkpoint hasil fine-tuning dan restart |
-| Status IndoBERT masih `configured` | Checkpoint terdeteksi, tetapi model baru dimuat saat prediksi pertama; status ini berbeda dari `ready` |
-| Resource `punkt_tab` atau `words` tidak ditemukan | Jalankan `python scripts/setup_nltk.py` dari `dashboard/` dengan interpreter backend yang sama |
-| Hasil training topik belum tersedia | Latih Top2Vec untuk membuat `reports/topics.json`, atau pilih sumber **Hasil notebook** untuk laporan historis |
-| Sentimen tampil, tetapi topik tidak cocok | Periksa status Top2Vec dan kosakata model; gunakan kalimat IKN yang lebih lengkap. Kalimat dapat tidak memiliki kecocokan topik |
-| Top2Vec berstatus `missing_dependency` | Pasang `requirements-topics.txt` pada environment backend, lalu restart |
-| HTTP 429 atau model sibuk | Tunggu sesuai `Retry-After`, lalu kirim ulang prediksi |
-| HTTP 403 pada prediksi | Cocokkan `FRONTEND_URL` dengan origin frontend, termasuk port |
-| HTTP 400 setelah mengganti host backend | Periksa daftar host yang diizinkan pada `IKN_TRUSTED_HOSTS` |
-| Evaluasi checkpoint `available=false` | Jalankan `python scripts/evaluate.py`; ulangi setelah mengganti checkpoint karena laporan memeriksa fingerprint model |
-| CUDA tidak tersedia atau memori tidak cukup | Gunakan CPU, kurangi batch size training/evaluasi, atau pasang PyTorch yang sesuai perangkat |
-| Setup otomatis berhenti di akhir | Periksa apakah checkpoint sudah terpasang; tahap terakhir skrip mencoba prediksi sungguhan |
+| Dashboard cannot load data | Confirm Flask is running, open `/api/summary` directly, and check `FLASK_API_URL` and the backend port |
+| Prediction fails with `model_unavailable` | Check `INDOBERT_MODEL_DIR`, `serving.json`, safetensors weights, tokenizer files, and backend logs; install a fine-tuned checkpoint and restart |
+| IndoBERT status remains `configured` | The checkpoint has been detected, but the model is loaded only on the first prediction; this state differs from `ready` |
+| Missing `punkt_tab` or `words` resource | Run `python scripts/setup_nltk.py` from `dashboard/` using the same interpreter as the backend |
+| Project topic results are unavailable | Train Top2Vec to create `reports/topics.json`, or select **Hasil notebook** (Notebook results) for historical outputs |
+| Sentiment is returned, but no topic matches | Check Top2Vec status and vocabulary, and try a more complete IKN opinion; some sentences have no matching topic |
+| Top2Vec reports `missing_dependency` | Install `requirements-topics.txt` in the backend environment and restart |
+| HTTP 429 or a busy model | Wait for the duration in `Retry-After`, then retry |
+| HTTP 403 on prediction | Match `FRONTEND_URL` to the frontend origin, including its port |
+| HTTP 400 after changing the backend host | Check the allowed host list in `IKN_TRUSTED_HOSTS` |
+| Checkpoint evaluation returns `available=false` | Run `python scripts/evaluate.py`; repeat after replacing the checkpoint because the report checks the model fingerprint |
+| CUDA is unavailable or memory is insufficient | Use CPU, reduce the training/evaluation batch size, or install PyTorch for the intended device |
+| Automated setup stops at the final step | Check whether the checkpoint is installed; the script's final step attempts a real prediction |
 
-Request frontend memiliki timeout satu menit. Prediksi pertama dapat lebih lambat karena model baru dimuat. Tombol batalkan menghentikan penantian di browser; komputasi yang sudah diterima backend dapat tetap berjalan.
+Frontend requests time out after one minute. The first prediction may take longer because the model must be loaded. Cancelling stops the browser from waiting; computation already accepted by the backend may continue.
 
-## Batasan dan interpretasi hasil
+## Limitations and interpretation
 
-- Dataset didominasi sentimen negatif. Baca Macro F1 dan metrik per kelas bersama akurasi untuk memahami hasil model.
-- Preprocessing mempertahankan perilaku notebook, termasuk penghapusan kata slang, stopword, dan kata Inggris. Sebagian informasi sentimen dapat hilang; perubahan pipeline memerlukan penyiapan dataset dan fine-tuning ulang.
-- Skor `confidence` berasal dari softmax classifier. Nilai tersebut merupakan skor model, bukan jaminan kebenaran atau pengukuran probabilitas yang sudah dikalibrasi.
-- Kemiripan topik memakai cosine pada rentang **−1 sampai 1**. Nilai ini berbeda dari confidence sentimen dan tidak ditampilkan sebagai probabilitas.
-- Coherence `c_v` menilai keterkaitan kata topik pada korpus, bukan ketepatan topik untuk satu kalimat baru.
-- Top2Vec membentuk topik dari korpus tiap sentimen. Nomor topik hanya berlaku dalam kelompok tersebut dan dapat berubah saat training diulang.
-- Hasil notebook dan checkpoint lokal memiliki sumber berbeda. Seed yang sama tidak menjamin hasil training identik pada perangkat dan versi dependensi berbeda.
-- Batas request dan cache model berlaku per proses backend. Menambah worker menambah proses, penggunaan memori, dan batas request agregat.
+- The dataset is dominated by negative sentiment. Read Macro F1 and per-class metrics alongside accuracy to understand model performance.
+- Preprocessing preserves the notebook's behaviour, including removing slang, stopwords, and English words. Some sentiment information may be lost; changing the pipeline requires rebuilding the dataset and fine-tuning again.
+- `confidence` comes from the classifier's softmax output. It is a model score, not a guarantee of correctness or a calibrated probability estimate.
+- Topic similarity uses cosine in the range **−1 to 1**. It differs from sentiment confidence and is not presented as a probability.
+- `c_v` coherence measures how related topic words are within the corpus, rather than how well a topic fits one new sentence.
+- Top2Vec discovers topics within each sentiment corpus. Topic numbers apply only within that group and may change after retraining.
+- Notebook results and local checkpoint results have different sources. The same seed does not guarantee identical training results across devices and dependency versions.
+- Request limits and model caches apply per backend process. Additional workers increase process count, memory usage, and the aggregate request allowance.
 
-## Panduan lanjutan
+## Further documentation
 
-- [Panduan aplikasi](dashboard/README.md): instalasi, impor checkpoint, ekspor Colab, preprocessing/tokenisasi, training, evaluasi, dan Top2Vec.
-- [Keterangan dataset](data/README.md): penempatan file sumber penelitian.
-- [Urutan notebook](notebooks/README.md): alur preprocessing, sentimen, dan pemodelan topik.
-- [Konfigurasi notebook](dashboard/config/notebook.json): parameter primary run yang dipakai CLI.
-- [Definisi OpenAPI](dashboard/server/openapi.py): skema dan kontrak endpoint yang disajikan melalui Swagger.
+- [Application guide](dashboard/README.md): installation, checkpoint import, Colab export, preprocessing/tokenization, training, evaluation, and Top2Vec.
+- [Dataset guide](data/README.md): research source file locations.
+- [Notebook guide](notebooks/README.md): preprocessing, sentiment analysis, and topic modelling workflow.
+- [Notebook configuration](dashboard/config/notebook.json): primary-run parameters used by the CLI.
+- [OpenAPI definition](dashboard/server/openapi.py): endpoint schemas and contracts served through Swagger.
 
-Referensi teknologi yang digunakan tersedia pada [bagian referensi panduan aplikasi](dashboard/README.md#referensi).
+Technology references are listed in the [application guide's references](dashboard/README.md#references).

@@ -1,14 +1,14 @@
-# Data penelitian IKN
+# IKN research data
 
-File sumber dipertahankan dengan nama dan isi aslinya agar dapat ditelusuri ke notebook.
+Source files retain their original names and contents so they can be traced back to the research notebooks.
 
-| Folder | Isi | Digunakan oleh |
+| Directory | Contents | Used for |
 | --- | --- | --- |
-| `raw/` | CSV train, validation, dan test berlabel | Eksplorasi dan distribusi sentimen |
-| `processed/` | TSV hasil preprocessing | Training dan evaluasi IndoBERT |
-| `external/` | Kamus slang dan stopword bahasa Indonesia | Preprocessing kalimat baru |
-| `predictions/` | CSV prediksi tersimpan dari notebook | Evaluasi historis dan input Top2Vec |
+| `raw/` | Labelled train, validation, and test CSVs | Exploration and sentiment distribution |
+| `processed/` | Preprocessed TSVs | IndoBERT training and evaluation |
+| `external/` | Indonesian slang and stopword dictionaries | Preprocessing new sentences |
+| `predictions/` | Saved notebook prediction CSVs | Historical evaluation and Top2Vec input |
 
-Hasil yang dihasilkan aplikasi disimpan di `dashboard/reports/`, terpisah dari data sumber. Checkpoint disimpan di `dashboard/models/`.
+Application-generated outputs are saved in `dashboard/reports/`, separately from source data. Checkpoints are stored in `dashboard/models/`.
 
-`IKN_DATA_DIR` dapat diarahkan ke direktori data lain dengan struktur yang sama. Direktori datar dari integrasi lama masih didukung. Notebook ditentukan secara terpisah melalui `IKN_NOTEBOOKS_DIR`.
+Set `IKN_DATA_DIR` to use another data directory with the same structure. Flat directories from older integrations are also supported. Notebook locations are configured separately through `IKN_NOTEBOOKS_DIR`.
