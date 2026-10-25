@@ -8,11 +8,31 @@ Dashboard dan API Python yang diadaptasi dari ketiga notebook di folder `../note
 
 Frontend **Next.js App Router + React + TypeScript** meminta data dan prediksi ke backend **Flask**. Next.js meneruskan request `/api/*` ke Flask, sehingga browser menggunakan satu origin tanpa konfigurasi CORS tambahan. Klasifikasi memakai PyTorch/IndoBERT; topic modelling memakai Top2Vec.
 
+Panduan ini memuat detail pipeline penelitian. Untuk ringkasan fitur, arsitektur, contoh request API, dan troubleshooting, lihat [README utama](../README.md).
+
+## Daftar isi
+
+- [Jalankan](#jalankan)
+- [Dokumentasi API](#dokumentasi-api)
+- [Halaman dashboard](#halaman-dashboard)
+- [Memasang ZIP hasil Colab](#memasang-zip-hasil-colab)
+- [Konfigurasi yang diambil dari notebook](#konfigurasi-yang-diambil-dari-notebook)
+- [Kesamaan preprocessing dan tokenisasi](#kesamaan-preprocessing-dan-tokenisasi)
+- [Ekspor dari runtime notebook yang sudah dilatih](#ekspor-dari-runtime-notebook-yang-sudah-dilatih)
+- [Evaluasi dan hasil notebook](#evaluasi-dan-hasil-notebook)
+- [Topic modelling Top2Vec](#topic-modelling-top2vec)
+- [Struktur aplikasi](#struktur-aplikasi)
+- [Environment variables](#environment-variables)
+- [Pengujian](#pengujian)
+- [Referensi](#referensi)
+
 ## Jalankan
 
 Gunakan Python 3.11 atau 3.12, Node.js >= 20.9, dan koneksi internet untuk instalasi dependensi serta unduhan awal model/resource.
 
-Untuk Linux/WSL, instalasi backend dapat dijalankan dengan satu perintah:
+**Checkpoint dan laporan training tidak disertakan dalam clone GitHub.** Isi `models/` dan `reports/` diabaikan Git, selain `.gitkeep`. Dataset dan output notebook sudah disertakan sehingga eksplorasi dan evaluasi historis tetap dapat digunakan sebelum model lokal tersedia. Prediksi kalimat memerlukan checkpoint IndoBERT; pencocokan topik kalimat memerlukan model Top2Vec.
+
+Untuk Linux/WSL yang sudah memiliki checkpoint terpasang atau hasil ekspor pada lokasi default, instalasi backend dapat dijalankan dengan satu perintah:
 
 ```bash
 cd dashboard
@@ -20,7 +40,7 @@ bash scripts/setup_backend.sh
 .venv/bin/python run.py
 ```
 
-Skrip menyiapkan virtual environment, pip, PyTorch CPU, dependensi backend, dan resource NLTK. Setelah instalasi, skrip menjalankan tes serta mencoba prediksi checkpoint lokal melalui test client Flask tanpa membuka port. Skrip berhenti jika salah satu tahap gagal. Python 3.10 juga didukung; pilih interpreter dengan `IKN_SETUP_PYTHON=python3.12 bash scripts/setup_backend.sh`. Unduhan memerlukan akses ke PyPI, `download.pytorch.org`, dan server resource NLTK. Skrip dapat dijalankan ulang untuk melanjutkan instalasi yang terputus.
+Skrip menyiapkan virtual environment, pip, PyTorch CPU, dependensi backend, dan resource NLTK. Setelah instalasi, skrip menjalankan tes serta mencoba prediksi checkpoint lokal melalui test client Flask tanpa membuka port. Skrip berhenti jika salah satu tahap gagal. Jika checkpoint belum dipasang, tahap prediksi akan gagal; gunakan instalasi manual di bawah, lalu impor atau latih model. Python 3.10 juga didukung; pilih interpreter dengan `IKN_SETUP_PYTHON=python3.12 bash scripts/setup_backend.sh`. Unduhan memerlukan akses ke PyPI, `download.pytorch.org`, dan server resource NLTK. Skrip dapat dijalankan ulang untuk melanjutkan instalasi yang terputus.
 
 Untuk instalasi manual, gunakan langkah berikut.
 
@@ -50,6 +70,10 @@ Buka **http://localhost:3000** untuk dashboard. Backend API berjalan pada **http
 Buka **http://127.0.0.1:5000/api/docs/** untuk Swagger UI, atau **http://localhost:3000/api/docs/** melalui frontend. Spesifikasi OpenAPI tersedia di `/api/openapi.json`. Jika dependensi sudah terpasang sebelumnya, jalankan `python -m pip install -r requirements.txt`, lalu restart backend.
 
 Swagger mendokumentasikan status model, ringkasan dataset, pencarian dan ekspor CSV, prediksi kalimat, topik, dan evaluasi. Buka endpoint, pilih **Try it out**, isi parameter atau JSON, lalu **Execute**. Request berjalan pada origin yang sama tanpa API key. Aset Swagger disajikan oleh backend; prediksi membutuhkan checkpoint lokal seperti pada dashboard dan memakai batas request yang sama.
+
+Daftar endpoint, parameter, contoh `curl`, dan kode respons tersedia di [dokumentasi API README utama](../README.md#dokumentasi-dan-penggunaan-api). Skema lengkap didefinisikan dalam [server/openapi.py](server/openapi.py).
+
+`/api/health` tidak memuat model dan dapat mengembalikan HTTP 200 walaupun checkpoint belum tersedia. Untuk IndoBERT, `configured` berarti manifest checkpoint terdeteksi, sedangkan `ready` berarti model berhasil dimuat. Periksa juga status per kelompok pada `topics.groups`. Laporan topik atau evaluasi yang belum ada ditandai dengan `available=false`.
 
 ## Halaman dashboard
 
@@ -83,11 +107,11 @@ python scripts/evaluate.py
 
 Jika sudah memiliki hasil training Colab, gunakan langkah ekspor di bawah tanpa melatih ulang.
 
-Checkpoint Colab dari `models/indobert_model_3e6.zip` sudah dipasang di **`models/indobert-ikn/`**, sesuai lokasi default backend. Model ini tidak memerlukan training ulang untuk dipakai. Instal dependensi dan resource NLTK, kemudian jalankan backend serta frontend.
+Jika sudah memiliki checkpoint Colab hasil fine-tuning, pasang di **`models/indobert-ikn/`**, sesuai lokasi default backend. Model tersebut tidak memerlukan training ulang untuk dipakai. Arsip ZIP dan hasil pemasangan merupakan file lokal yang tidak ikut di-push ke GitHub.
 
 ## Memasang ZIP hasil Colab
 
-Untuk pemasangan baru ke folder tujuan yang masih kosong:
+Untuk pemasangan baru ke folder tujuan yang masih kosong, siapkan ZIP hasil fine-tuning sendiri. Contoh jika arsip diletakkan dengan nama berikut:
 
 ```bash
 python scripts/import_checkpoint.py models/indobert_model_3e6.zip
@@ -169,6 +193,20 @@ Salin seluruh folder hasil ekspor ke `dashboard/models/indobert-ikn/`. Nama `mod
 Variabel `model` ditimpa pada setiap skenario tuning notebook. Ekspor tepat setelah skenario yang dipilih, sebelum menjalankan skenario berikutnya. Hasil export meliputi `config.json`, `model.safetensors`, tokenizer, dan `serving.json`.
 
 Backend menggunakan file lokal, memeriksa urutan label serta kelengkapan bobot classifier, lalu menjalankan `model.eval()` dan `torch.inference_mode()`. Tidak ada unduhan model selama request prediksi. Restart backend setelah mengganti checkpoint.
+
+Struktur checkpoint hasil ekspor biasanya seperti berikut:
+
+```text
+models/indobert-ikn/
+  config.json
+  model.safetensors
+  serving.json
+  tokenizer_config.json
+  special_tokens_map.json
+  vocab.txt
+```
+
+File tambahan seperti `tokenizer.json`, metadata impor, dan riwayat training dapat tersedia sesuai cara model dipasang. `serving.json` menetapkan profil preprocessing, tokenisasi, panjang maksimum, backbone, serta mapping label yang diperiksa backend sebelum inferensi.
 
 ## Evaluasi dan hasil notebook
 
@@ -261,6 +299,8 @@ Folder checkpoint IndoBERT berada di `models/indobert-ikn/`.
 Beberapa output eksperimen learning rate di notebook tidak cocok dengan source cell yang tersimpan. Konfigurasi training aplikasi memakai source primary run (`3e-6`, 5 epoch), dan metrik lama dihitung dari CSV aktual.
 
 ## Environment variables
+
+Backend membaca variabel dari environment proses, bukan memuat `.env` secara otomatis. Default path dihitung dari lokasi repository; gunakan path absolut untuk pengaturan sendiri. Frontend membaca `FLASK_API_URL` melalui environment Next.js, misalnya `frontend/.env.local` yang dibuat dari `.env.example`.
 
 | Variabel | Default | Fungsi |
 | --- | --- | --- |
