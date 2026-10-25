@@ -34,6 +34,8 @@ npm run dev
 
 Buka **http://localhost:3000**. Flask berjalan di **http://127.0.0.1:5000**. Jika dependensi sudah terpasang, cukup jalankan backend dan frontend. Checkpoint lokal berada di `dashboard/models/indobert-ikn/`.
 
+Dokumentasi dan pengujian API tersedia melalui **Swagger UI** di **http://127.0.0.1:5000/api/docs/**. Spesifikasi OpenAPI berada di `/api/openapi.json`. Saat frontend berjalan, Swagger juga bisa dibuka melalui **http://localhost:3000/api/docs/**.
+
 Dari folder utama, `make backend` dan `make frontend` menjalankan kedua layanan pada terminal terpisah. `make test` menjalankan pengujian backend dan frontend, sedangkan `make build` membuat build frontend produksi. Gunakan `make PYTHON=python3 test-backend` untuk interpreter lain yang sudah memiliki dependensi.
 
 [Panduan aplikasi](dashboard/README.md) menjelaskan instalasi manual, impor checkpoint Colab, training, evaluasi, Top2Vec, dan konfigurasi environment.

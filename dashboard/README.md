@@ -45,6 +45,14 @@ npm run dev
 
 Buka **http://localhost:3000** untuk dashboard. Backend API berjalan pada **http://127.0.0.1:5000**. Pada Windows, aktivasi virtual environment dengan `.venv\Scripts\activate`.
 
+## Dokumentasi API
+
+Buka **http://127.0.0.1:5000/api/docs/** untuk Swagger UI, atau **http://localhost:3000/api/docs/** melalui frontend. Spesifikasi OpenAPI tersedia di `/api/openapi.json`. Jika dependensi sudah terpasang sebelumnya, jalankan `python -m pip install -r requirements.txt`, lalu restart backend.
+
+Swagger mendokumentasikan status model, ringkasan dataset, pencarian dan ekspor CSV, prediksi kalimat, topik, dan evaluasi. Buka endpoint, pilih **Try it out**, isi parameter atau JSON, lalu **Execute**. Request berjalan pada origin yang sama tanpa API key. Aset Swagger disajikan oleh backend; prediksi membutuhkan checkpoint lokal seperti pada dashboard dan memakai batas request yang sama.
+
+## Halaman dashboard
+
 Navigasi utama menggunakan sidebar dengan lima halaman:
 
 | Halaman | Alamat | Isi |

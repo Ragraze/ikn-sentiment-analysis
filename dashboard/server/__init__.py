@@ -15,7 +15,9 @@ from .topics import Top2VecService, get_topics
 
 def create_app(config=None, predictor=None, topic_predictor=None):
     from flask import Flask, Response, jsonify, request
+    from flask_swagger_ui import get_swaggerui_blueprint
     from werkzeug.exceptions import HTTPException
+    from .openapi import SPEC
 
     app = Flask(__name__, static_folder=None)
     app.config.update(MAX_CONTENT_LENGTH=16_384,
@@ -30,6 +32,17 @@ def create_app(config=None, predictor=None, topic_predictor=None):
                       FRONTEND_URL=os.environ.get('FRONTEND_URL', 'http://localhost:3000'))
     if config:
         app.config.update(config)
+    app.register_blueprint(get_swaggerui_blueprint(
+        '/api/docs', '/api/openapi.json',
+        config={'app_name': 'IKN Sentiment Lab API', 'validatorUrl': None,
+                'supportedSubmitMethods': ['get', 'post'], 'defaultModelsExpandDepth': -1},
+    ))
+    app.add_url_rule('/api/docs', 'swagger_docs', app.view_functions['swagger_ui.show'])
+
+    @app.get('/api/openapi.json')
+    def openapi():
+        return jsonify(SPEC)
+
     repository = DatasetRepository(Path(app.config['DATA_DIR']), Path(app.config['NOTEBOOKS_DIR']))
     service = predictor or IndoBertService(Path(app.config['MODEL_DIR']), app.config['MODEL_DEVICE'], Path(app.config['DATA_DIR']))
     topic_service = topic_predictor or Top2VecService(Path(app.config['TOPIC_MODEL_DIR']))
@@ -52,6 +65,7 @@ def create_app(config=None, predictor=None, topic_predictor=None):
     @app.get('/')
     def index():
         return jsonify(service='IKN Sentiment Lab API', frontend=app.config['FRONTEND_URL'],
+                       docs='/api/docs/', openapi='/api/openapi.json',
                        message='Buka frontend Next.js untuk menggunakan dashboard.')
 
     @app.get('/api/health')
