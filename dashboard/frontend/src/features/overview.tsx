@@ -21,14 +21,14 @@ export function Overview() {
   return (
     <>
       <dl className="summary-strip" aria-label="Ringkasan dataset" aria-busy={loading}>
-        <div className="summary-total"><dt>Total opini</dt><dd>{data ? number(data.total) : loading ? '…' : 'Belum tersedia'}</dd><span>Dataset penelitian IKN</span><div className="summary-meter" aria-hidden="true"><span style={{ width: data?.total ? '100%' : '0%' }} /></div></div>
+        <div className="summary-total"><dt>Total opini</dt><dd>{data ? number(data.total) : loading ? '…' : 'Belum tersedia'}</dd><span>100% keseluruhan data</span><div className="summary-meter" aria-hidden="true"><span style={{ width: data?.total ? '100%' : '0%' }} /></div></div>
         {(['train', 'val', 'test'] as Split[]).map(key => (
           <div key={key}><dt>Data {splitNames[key].toLowerCase()}</dt><dd>{data ? number(data.splits[key].count) : loading ? '…' : 'Belum tersedia'}</dd><span>{data && data.total > 0 ? `${percent(data.splits[key].count / data.total)} dari seluruh opini` : 'Pembagian dataset'}</span><div className="summary-meter" aria-hidden="true"><span style={{ width: data && data.total > 0 ? `${data.splits[key].count / data.total * 100}%` : '0%' }} /></div></div>
         ))}
       </dl>
       <div className="overview-charts">
         <section className="panel" aria-label="Grafik proporsi sentimen">
-          <PanelHeader title="Proporsi sentimen" description="Bagaimana komposisi label opini dalam dataset?">
+          <PanelHeader title="Proporsi sentimen">
             <label className="field-label" htmlFor="distribution-split">Bagian dataset</label>
             <select id="distribution-split" value={split} onChange={event => setSplit(event.target.value as 'all' | Split)}>
               <option value="all">Semua data</option>
@@ -43,7 +43,7 @@ export function Overview() {
           )}
         </section>
         <section className="panel" aria-label="Grafik sentimen per bagian dataset">
-          <PanelHeader title="Sebaran pada tiap bagian data" description="Bandingkan jumlah opini per sentimen pada training, validasi, dan pengujian." />
+          <PanelHeader title="Sebaran pada tiap bagian data" />
           {loading || error || !data ? <ResourceState loading={loading} error={error} onRetry={reload} title="Dataset belum tersedia" message="Data penelitian diperlukan untuk membuat perbandingan." /> : <SplitDistribution data={data.splits} />}
         </section>
       </div>

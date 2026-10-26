@@ -136,7 +136,10 @@ details p { color: var(--muted); margin: .5rem 0; }
 .workspace :is(input, select, textarea) { background: var(--surface); }
 .workspace select { padding-right: 2rem; }
 .workspace .button.primary { padding-left: 1.125rem; padding-right: 1.125rem; }
-main { width: 100%; max-width: 1440px; margin: auto; padding: 1.5rem 1rem 0; }
+main { width: 100%; max-width: 1440px; margin: auto; padding: 1.5rem 1rem calc(6rem + env(safe-area-inset-bottom, 0px)); }
+.github-link { position: fixed; right: calc(1.25rem + env(safe-area-inset-right, 0px)); bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px)); z-index: 4; display: flex; align-items: center; justify-content: center; width: 3rem; height: 3rem; border: 1px solid var(--control-border); border-radius: 50%; color: var(--ink); background: var(--surface); }
+.github-link:hover { background: var(--selected); }
+.github-link svg { width: 1.5rem; height: 1.5rem; }
 .workspace-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.25rem; padding-bottom: 1.5rem; margin-bottom: 1.75rem; border-bottom: 1px solid var(--line); }
 .workspace-heading > div { min-width: 0; flex: 1 1 20rem; }
 .workspace-heading > .button { flex-shrink: 0; }
@@ -390,7 +393,7 @@ tbody tr:last-child td, tbody tr:last-child th { border-bottom: 0; }
   .section-space { margin-top: 2rem; }
 }
 
-@media (min-width: 64rem) {
+@media (min-width: 80rem) {
   html { scroll-padding-top: 1.5rem; }
   .desktop-sidebar { display: block; position: fixed; inset: 0 auto 0 0; width: 15.5rem; height: 100dvh; overflow-y: auto; z-index: 5; }
   .mobile-toolbar { display: none; }

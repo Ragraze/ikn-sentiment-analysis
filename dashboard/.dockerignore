@@ -1,0 +1,13 @@
+.git
+.aws
+.agents
+.codex
+.venv
+.cache
+__pycache__
+**/__pycache__
+frontend
+tests
+**/.env*
+**/*:Zone.Identifier
+models/**/*.zip

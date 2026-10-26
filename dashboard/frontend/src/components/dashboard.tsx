@@ -43,7 +43,7 @@ export default function Dashboard({ children }: { children: ReactNode }) {
     panel?.showModal();
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    const desktop = window.matchMedia('(min-width: 64rem)');
+    const desktop = window.matchMedia('(min-width: 80rem)');
     function onResize() {
       if (desktop.matches) {
         panel?.close();
@@ -69,11 +69,10 @@ export default function Dashboard({ children }: { children: ReactNode }) {
         <div className="sidebar-brand-row">
           <Link href="/" className="brand" onClick={mobile ? closeMenu : undefined}>
             <span className="brand-name">IKN <strong>Sentiment Lab</strong></span>
-            <span className="brand-caption">Analisis opini Nusantara</span>
+            <span className="brand-caption">Analisis opini publik</span>
           </Link>
           {mobile && <button type="button" className="sidebar-close" onClick={closeMenu} aria-label="Tutup menu navigasi">×</button>}
         </div>
-        <p className="sidebar-label">Ruang penelitian</p>
         <nav className="sidebar-navigation" aria-label={mobile ? 'Navigasi utama seluler' : 'Navigasi utama'}>
           {navigation.map(item => (
             <Link key={item.href} href={item.href} aria-current={pathname === item.href ? 'page' : undefined} onClick={mobile ? closeMenu : undefined}>
@@ -97,7 +96,7 @@ export default function Dashboard({ children }: { children: ReactNode }) {
       <div className="mobile-toolbar">
         <Link href="/" className="mobile-brand">IKN Sentiment Lab</Link>
         <button className="menu-button" type="button" aria-expanded={menuOpen} aria-controls="mobile-sidebar" aria-haspopup="dialog" onClick={() => setMenuOpen(true)}>
-          <span className="menu-glyph" aria-hidden="true"><span /><span /></span>Menu
+          <span className="menu-glyph" aria-hidden="true"><span /><span /><span /></span>Menu
         </button>
       </div>
       <dialog ref={dialog} id="mobile-sidebar" className="mobile-sidebar" aria-label="Menu navigasi" onClose={() => setMenuOpen(false)} onCancel={() => setMenuOpen(false)} onClick={event => { if (event.target === event.currentTarget) closeMenu(); }}>
@@ -107,16 +106,17 @@ export default function Dashboard({ children }: { children: ReactNode }) {
         <main id="main" tabIndex={-1}>
           <header className="workspace-heading">
             <div>
-              <p className="workspace-context">Penelitian Ibu Kota Nusantara</p>
               <h1>{page?.title || 'Halaman tidak ditemukan'}</h1>
               {page && <p className="workspace-description">{page.description}</p>}
             </div>
             {pathname === '/' && <Link href="/analysis" className="button primary">Analisis kalimat</Link>}
           </header>
           <div className="page-content">{children}</div>
-          <footer className="workspace-footer"><span>IKN Sentiment Lab</span><span>Data penelitian · Bahasa Indonesia</span></footer>
         </main>
       </div>
+      <a className="github-link" href="https://github.com/Ragraze/ikn-sentiment-analysis" target="_blank" rel="noopener noreferrer" aria-label="Buka repositori GitHub (tab baru)" title="Lihat kode di GitHub">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .75a11.25 11.25 0 0 0-3.56 21.92c.56.1.77-.24.77-.54v-2.1c-3.13.68-3.79-1.33-3.79-1.33-.51-1.3-1.25-1.65-1.25-1.65-1.02-.7.08-.69.08-.69 1.13.08 1.72 1.16 1.72 1.16 1 1.72 2.63 1.22 3.27.93.1-.73.39-1.22.71-1.5-2.5-.29-5.13-1.25-5.13-5.56 0-1.23.44-2.23 1.16-3.02-.12-.29-.5-1.43.11-2.98 0 0 .95-.3 3.1 1.15a10.8 10.8 0 0 1 5.63 0c2.15-1.46 3.1-1.15 3.1-1.15.61 1.55.23 2.69.11 2.98.72.79 1.16 1.79 1.16 3.02 0 4.32-2.64 5.27-5.15 5.55.4.35.76 1.04.76 2.1v3.09c0 .3.2.65.78.54A11.25 11.25 0 0 0 12 .75Z" /></svg>
+      </a>
     </ModelHealthProvider>
   );
 }

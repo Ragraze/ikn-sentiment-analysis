@@ -6,6 +6,7 @@ if (!['http:', 'https:'].includes(backendUrl.protocol) || backendUrl.username ||
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
   poweredByHeader: false,
   devIndicators: false,
   experimental: { useTypeScriptCli: false, agentUpgrade: 'security' },

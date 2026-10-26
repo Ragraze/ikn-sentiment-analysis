@@ -65,6 +65,18 @@ npm run dev
 
 Open **http://localhost:3000** for the dashboard. The backend API runs at **http://127.0.0.1:5000**. On Windows, activate the virtual environment with `.venv\Scripts\activate` in Command Prompt, or `.\.venv\Scripts\Activate.ps1` in PowerShell.
 
+## Docker
+
+From the `dashboard` directory, run:
+
+```bash
+docker compose up --build -d
+```
+
+Open http://localhost:3000. Compose runs the Next.js frontend and a CPU backend with Gunicorn and Top2Vec dependencies. Only the frontend port is published; API requests are forwarded internally to the backend. Dataset and notebook folders from the repository are mounted read-only. Local model files in `models/` are copied into the backend image; install checkpoints before building for sentence prediction, and rebuild after replacing them. Missing checkpoints do not prevent dataset exploration.
+
+For access through another hostname, set `FRONTEND_URL` to the browser's origin before starting Compose, for example `FRONTEND_URL=http://192.168.1.10:3000 docker compose up -d`. The first build downloads dependencies and NLTK resources. Stop the services with `docker compose down`.
+
 ## API documentation
 
 Open **http://127.0.0.1:5000/api/docs/** for Swagger UI, or **http://localhost:3000/api/docs/** through the frontend. The OpenAPI specification is available at `/api/openapi.json`. For an existing installation, run `python -m pip install -r requirements.txt` and restart the backend to install any newly required packages.
@@ -87,7 +99,7 @@ The sidebar provides navigation to five pages:
 | Topic modelling | `/topics` | Keywords, weights, and coherence; project training results are the default source |
 | Model evaluation | `/evaluation` | Project checkpoint or notebook metrics, confusion matrix, per-class results, and report provenance |
 
-On small screens, the **Menu** button opens the sidebar. Close it with the close button, Escape, or a click outside the panel. Dashboard charts use actual API data. The dataset split filter updates sentiment proportions, and the selected topic source is carried into the detail page. The comparison chart includes a table with exact values for each bar.
+Below 1280px, including tablet layouts, the hamburger **Menu** button opens the sidebar. Close it with the close button, Escape, or a click outside the panel. Selecting a page also closes the menu. The GitHub button stays in the lower-right corner and opens the project repository in a new tab. Dashboard charts use actual API data. The dataset split filter updates sentiment proportions, and the selected topic source is carried into the detail page. The comparison chart includes a table with exact values for each bar.
 
 The interface uses Indonesian labels. On the analysis page, **Ctrl/Cmd + Enter** submits an analysis, **Salin hasil** (Copy results) copies the sentence and result summary, and **Urungkan** (Undo) restores a cleared sentence. The latest input and result remain available while navigating within the application and reset on page reload. **Batalkan** (Cancel) aborts the browser request and clears its pending result; computation already accepted by the backend may continue.
 

@@ -17,7 +17,7 @@ export function TopicSummary() {
 
   return (
     <section className="panel" aria-label="Grafik topik per sentimen">
-      <PanelHeader title="Topik menurut sentimen" description="Jumlah kelompok percakapan yang ditemukan Top2Vec.">
+      <PanelHeader title="Topik menurut sentimen">
         <label className="field-label" htmlFor="overview-topic-source">Sumber topik</label>
         <select id="overview-topic-source" value={source} onChange={event => setSource(event.target.value)}><option value="trained">Training proyek</option><option value="notebook">Hasil notebook</option></select>
       </PanelHeader>
