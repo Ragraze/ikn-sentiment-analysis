@@ -1,0 +1,59 @@
+{
+  "count": 2501,
+  "accuracy": 0.7696921231507396,
+  "macro_f1": 0.6070023590702327,
+  "labels": [
+    "positive",
+    "neutral",
+    "negative"
+  ],
+  "confusion": [
+    [
+      206,
+      24,
+      158
+    ],
+    [
+      28,
+      99,
+      239
+    ],
+    [
+      60,
+      67,
+      1620
+    ]
+  ],
+  "per_class": [
+    {
+      "label": "positive",
+      "precision": 0.7006802721088435,
+      "recall": 0.5309278350515464,
+      "f1": 0.6041055718475073,
+      "support": 388
+    },
+    {
+      "label": "neutral",
+      "precision": 0.5210526315789473,
+      "recall": 0.27049180327868855,
+      "f1": 0.356115107913669,
+      "support": 366
+    },
+    {
+      "label": "negative",
+      "precision": 0.8031730292513634,
+      "recall": 0.9273039496279336,
+      "f1": 0.8607863974495217,
+      "support": 1747
+    }
+  ],
+  "model": "IndoBERT",
+  "base_model": "indobenchmark/indobert-base-p1",
+  "split": "test",
+  "model_fingerprint": "bedea343f70fdbbe4e56ea8b39882bdfa2856ca0ebc8ddfd1af9a8d8351602da",
+  "evaluated_at": "2026-10-26T05:08:52.022863+00:00",
+  "preprocessing": "notebook",
+  "max_length": 512,
+  "source": "checkpoint",
+  "dataset": "preprocessed_final_ikn_test.tsv"
+}

@@ -75,7 +75,7 @@ Backend dependencies are listed in [requirements.txt](dashboard/requirements.txt
 ## Repository structure
 
 ```text
-sentiment-analysis/
+ikn-sentiment-analysis/
 ├── README.md
 ├── Makefile
 ├── data/
@@ -101,14 +101,14 @@ sentiment-analysis/
     ├── scripts/             # Setup, checkpoint import, training, and evaluation
     ├── tests/               # Backend tests
     ├── models/              # Local checkpoints; contents ignored by Git
-    ├── reports/             # Local reports; contents ignored by Git
+    ├── reports/             # Published checkpoint evaluation and local outputs
     ├── notebook_export.py   # Model export from a notebook runtime
     ├── requirements.txt
     ├── requirements-topics.txt
     └── run.py               # Backend entrypoint
 ```
 
-Checkpoints, training outputs, caches, virtual environments, `node_modules`, Next.js builds, and `.env.local` configuration are excluded from GitHub. The `models/` and `reports/` directories are retained through `.gitkeep`; a fresh clone requires its own model setup.
+Checkpoints, generated prediction CSVs, caches, virtual environments, `node_modules`, Next.js builds, and `.env.local` configuration are excluded from GitHub. The checkpoint evaluation report at `dashboard/reports/test.json` is versioned with the project. Other generated reports remain local. A fresh clone requires its own model setup.
 
 ## Datasets and research results
 
@@ -125,17 +125,19 @@ Across the original CSVs, the label distribution is **8,734 negative**, **1,846 
 
 The exploration CSVs contain `text` and `label` columns. Preprocessed TSVs contain two columns without a header: text and label. The research prediction CSVs contain `text`, `sentiment`, and `sentiment_predict` columns.
 
-The evaluation page recalculates metrics from [test_with_predictions new.csv](<data/predictions/test_with_predictions new.csv>), which contains 2,501 opinions:
+The evaluation page recalculates historical metrics from [test_with_predictions new.csv](<data/predictions/test_with_predictions new.csv>), which contains 2,501 opinions. The installed checkpoint was evaluated separately on the 2,501-row preprocessed test split:
 
-| Metric | Notebook result |
-| --- | ---: |
-| Accuracy | 77.61% |
-| Macro F1 | 0.6393 |
-| Positive F1 | 0.6454 |
-| Neutral F1 | 0.4098 |
-| Negative F1 | 0.8627 |
+| Metric | Historical notebook CSV | Installed checkpoint |
+| --- | ---: | ---: |
+| Accuracy | 77.61% | 76.97% |
+| Macro F1 | 0.6393 | 0.6070 |
+| Positive F1 | 0.6454 | 0.6041 |
+| Neutral F1 | 0.4098 | 0.3561 |
+| Negative F1 | 0.8627 | 0.8608 |
 
-These figures come from saved research predictions. Local checkpoint evaluation runs separately through `scripts/evaluate.py` and may produce different metrics. The API checks the checkpoint fingerprint before serving a local evaluation report.
+The [checkpoint evaluation report](dashboard/reports/test.json) records the run timestamp, dataset, preprocessing profile, label order, confusion matrix, per-class metrics, and model fingerprint. This run used CPU inference with batch size 8 and a maximum sequence length of 512 tokens on October 26, 2026. Prediction rows were checked against the test TSV, and metrics were independently verified with scikit-learn.
+
+The dashboard evaluation page displays the historical notebook results. To retrieve the installed checkpoint's report, use `GET /api/evaluation?source=checkpoint`. The API serves it only when its fingerprint matches the installed checkpoint. Replacing the checkpoint requires running `scripts/evaluate.py` again. Neutral-class recall in this checkpoint evaluation is 27.05%, so read per-class metrics alongside overall accuracy.
 
 See the [data guide](data/README.md) and [notebook guide](notebooks/README.md) for source locations and the experiment workflow.
 
@@ -154,8 +156,8 @@ Top2Vec dependencies are installed separately when needed for training or senten
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/Ragraze/sentiment-analysis.git
-cd sentiment-analysis
+git clone https://github.com/Ragraze/ikn-sentiment-analysis.git
+cd ikn-sentiment-analysis
 ```
 
 ### 2. Set up the backend

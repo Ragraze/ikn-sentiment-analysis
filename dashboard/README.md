@@ -30,7 +30,7 @@ This guide covers the research pipeline in detail. For an overview of features, 
 
 Use Python 3.11 or 3.12, Node.js >= 20.9, and an internet connection for dependency installation and the initial model/resource downloads.
 
-**Checkpoints and training reports are excluded from GitHub clones.** The contents of `models/` and `reports/` are ignored by Git, except for `.gitkeep`. Datasets and notebook outputs are included, so exploration and historical evaluation are available before local models are installed. Sentence prediction requires an IndoBERT checkpoint, and sentence-to-topic matching requires Top2Vec models.
+**Model checkpoints are excluded from GitHub clones.** The checkpoint evaluation report `reports/test.json` is included; other generated reports and prediction CSVs are ignored by Git. Datasets and notebook outputs are also included, so exploration and historical evaluation are available before local models are installed. Sentence prediction requires an IndoBERT checkpoint, and sentence-to-topic matching requires Top2Vec models.
 
 On Linux/WSL, if a checkpoint or notebook export is already installed at the default location, backend setup can be run with one command:
 
@@ -220,6 +220,20 @@ Checkpoint evaluation outputs:
 reports/test.json                  # Accuracy, macro F1, confusion matrix, and per-class metrics.
 reports/test_with_predictions.csv  # text, sentiment, sentiment_predict; input for the Top2Vec notebook.
 ```
+
+The published [checkpoint report](reports/test.json), generated on October 26, 2026, covers all 2,501 opinions in `preprocessed_final_ikn_test.tsv`. The evaluation used CPU inference, batch size 8, the notebook preprocessing profile, and a maximum length of 512 tokens:
+
+| Metric | Installed checkpoint |
+| --- | ---: |
+| Accuracy | 76.97% |
+| Macro F1 | 0.6070 |
+| Positive F1 | 0.6041 |
+| Neutral F1 | 0.3561 |
+| Negative F1 | 0.8608 |
+
+Prediction rows were verified against the source test TSV, and accuracy, Macro F1, confusion matrix, precision, recall, F1, and support were independently checked with scikit-learn. The report contains a SHA-256 model fingerprint. `GET /api/evaluation?source=checkpoint` returns it only when it matches the installed checkpoint; otherwise, rerun evaluation for that model. The dashboard page continues to display the separately labelled notebook results.
+
+`reports/test.json` is versioned in Git. The generated `reports/test_with_predictions.csv` remains local and can be recreated by running evaluation. Model weights remain excluded from the repository.
 
 A correction to the notebook: `classification_report(..., target_names=w2i.keys())` without explicit `labels` can swap positive/negative names because alphabetical class ordering differs from IndoNLU ordering. Dashboard calculations use the explicit order **positive → neutral → negative**. Actual test TSV support is 388 positive, 366 neutral, and 1,747 negative opinions.
 
