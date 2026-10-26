@@ -7,6 +7,7 @@ if (!['http:', 'https:'].includes(backendUrl.protocol) || backendUrl.username ||
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
+  devIndicators: false,
   experimental: { useTypeScriptCli: false, agentUpgrade: 'security' },
   async headers() {
     return [{
