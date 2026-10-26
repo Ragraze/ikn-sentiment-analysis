@@ -58,9 +58,16 @@
 .topics-section .topic-result-count { padding: 1.25rem; font-size: .8125rem; color: var(--muted); }
 .topics-section .topic-result-count strong { color: var(--ink); font-weight: 600; }
 
-.evaluation-workspace .evaluation-source-context { display: flex; flex-wrap: wrap; align-items: center; gap: .375rem 1rem; margin: 1.25rem 1.25rem 1.5rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--line); }
+.evaluation-workspace .evaluation-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.5rem; margin: 1.25rem 1.25rem 1.5rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--line); }
+.evaluation-workspace .evaluation-toolbar > label { flex: 0 1 16rem; width: 100%; }
+.evaluation-workspace .evaluation-toolbar select { margin-top: .375rem; font-size: .875rem; }
+.evaluation-workspace .evaluation-source-context { flex: 1 1 18rem; min-width: 0; }
 .evaluation-workspace .evaluation-source-context strong { display: block; font-size: .875rem; font-weight: 600; }
-.evaluation-workspace .evaluation-source-context p { color: var(--muted); font-size: .8125rem; }
+.evaluation-workspace .evaluation-source-context p { margin-top: .375rem; color: var(--muted); font-size: .8125rem; }
+.evaluation-workspace .evaluation-unavailable > button { margin: 0 1.25rem 1.5rem; }
+.evaluation-workspace .evaluation-provenance { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem 1.5rem; overflow-wrap: anywhere; }
+.evaluation-workspace .evaluation-provenance strong { font-weight: 500; }
+.evaluation-workspace .evaluation-stats { grid-template-columns: repeat(auto-fit, minmax(min(10rem, 100%), 1fr)); }
 .evaluation-workspace .evaluation-stats > div { padding: 1.25rem; border: 1px solid var(--line); border-radius: 10px; background: var(--background); }
 .evaluation-workspace .evaluation-stats > div:first-child { background: var(--selected); border-color: #d2ddc9; }
 .evaluation-workspace .evaluation-stats dd { margin-top: .625rem; }
@@ -80,7 +87,8 @@
   .dataset-workspace .feature-toolbar, .topics-section .topic-controls { padding: 1.5rem; }
   .topics-section .topic-result-count { padding-left: 1.5rem; padding-right: 1.5rem; }
   .dataset-workspace .dataset-filter-summary { padding-left: 1.5rem; padding-right: 1.5rem; }
-  .evaluation-workspace .evaluation-source-context, .evaluation-workspace .evaluation-reading-guide { margin-left: 1.5rem; margin-right: 1.5rem; }
+  .evaluation-workspace .evaluation-toolbar, .evaluation-workspace .evaluation-reading-guide, .evaluation-workspace .evaluation-unavailable > button { margin-left: 1.5rem; margin-right: 1.5rem; }
+  .evaluation-workspace .evaluation-provenance { padding-left: 1.5rem; padding-right: 1.5rem; }
   .evaluation-workspace .evaluation-reading-guide dl { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem 2rem; }
   .analysis-workspace .analysis-announcement:not(:empty) { padding-left: 1.5rem; padding-right: 1.5rem; }
   .analysis-workspace .result-panel { margin: 0 1.5rem 1.5rem 0; padding: 1.5rem; }

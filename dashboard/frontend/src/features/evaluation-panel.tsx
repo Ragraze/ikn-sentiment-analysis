@@ -1,27 +1,38 @@
 'use client';
 
-import type { CSSProperties } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { ResourceState } from '@/components/resource-state';
 import { SentimentBadge } from '@/components/sentiment-badge';
 import { useResource } from '@/hooks/use-resource';
-import { number, percent } from '@/lib/format';
+import { number } from '@/lib/format';
 import { names } from '@/lib/sentiment';
 import type { Evaluation } from '@/lib/types';
 
+const percentages = new Intl.NumberFormat('id-ID', { style: 'percent', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const f1Scores = new Intl.NumberFormat('id-ID', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+const dates = new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+
 export function EvaluationPanel() {
-  const { data: report, loading, error, reload } = useResource<Evaluation>('/api/evaluation?source=notebook');
+  const [source, setSource] = useState<'checkpoint' | 'notebook'>('checkpoint');
+  const { data: report, loading, error, reload } = useResource<Evaluation>(`/api/evaluation?source=${source}`);
+  const checkpoint = source === 'checkpoint';
+  const evaluatedAt = report?.evaluated_at && Number.isFinite(Date.parse(report.evaluated_at)) ? report.evaluated_at : null;
 
   return (
     <section id="evaluation" className="panel section-space evaluation-workspace">
-      <div className="evaluation-source-context"><strong>Hasil notebook</strong><p>Metrik dihitung dari CSV prediksi yang tersimpan pada penelitian.</p></div>
+      <div className="evaluation-toolbar">
+        <label htmlFor="evaluation-source">Sumber evaluasi<select id="evaluation-source" value={source} onChange={event => setSource(event.target.value as 'checkpoint' | 'notebook')} aria-controls="evaluation-report"><option value="checkpoint">Checkpoint proyek</option><option value="notebook">Hasil notebook</option></select></label>
+        <div className="evaluation-source-context" role="status"><strong>{checkpoint ? 'Evaluasi model proyek' : 'Evaluasi penelitian notebook'}</strong><p>{checkpoint ? 'Laporan hanya ditampilkan jika sesuai dengan checkpoint yang digunakan untuk analisis kalimat.' : 'Metrik dihitung dari CSV prediksi yang tersimpan pada penelitian.'}</p></div>
+      </div>
+      <div id="evaluation-report" aria-busy={loading}>
       {loading || error ? <ResourceState loading={loading} error={error} onRetry={reload} /> : !report?.available ? (
-        <ResourceState title="Evaluasi belum tersedia" message={report?.message || 'File prediksi hasil notebook belum tersedia. Periksa dataset penelitian.'} />
+        <div className="evaluation-unavailable"><ResourceState title={checkpoint ? 'Evaluasi checkpoint belum tersedia' : 'Evaluasi notebook belum tersedia'} message={report?.message || (checkpoint ? 'Laporan evaluasi belum tersedia untuk checkpoint proyek ini.' : 'File prediksi hasil notebook belum tersedia. Periksa dataset penelitian.')} />{checkpoint && <button type="button" onClick={() => setSource('notebook')}>Lihat hasil notebook</button>}</div>
       ) : (
         <>
           <dl className="evaluation-stats">
-            <div><dt>Akurasi</dt><dd>{percent(report.accuracy || 0)}</dd><span>Proporsi prediksi yang benar</span></div>
-            <div><dt>Macro F1</dt><dd>{(report.macro_f1 || 0).toLocaleString('id-ID', { minimumFractionDigits: 3, maximumFractionDigits: 3 })}</dd><span>Rata-rata F1 ketiga sentimen</span></div>
-            <div><dt>Data uji</dt><dd>{number(report.count || 0)}</dd><span>Opini pada evaluasi notebook</span></div>
+            <div><dt>Akurasi</dt><dd>{percentages.format(report.accuracy || 0)}</dd><span>Proporsi prediksi yang benar</span></div>
+            <div><dt>Macro F1</dt><dd>{f1Scores.format(report.macro_f1 || 0)}</dd><span>Rata-rata F1 ketiga sentimen</span></div>
+            <div><dt>Data uji</dt><dd>{number(report.count || 0)}</dd><span>{checkpoint ? 'Opini pada evaluasi checkpoint' : 'Opini pada evaluasi notebook'}</span></div>
           </dl>
           <div className="evaluation-grid">
             <div className="matrix-wrap">
@@ -45,15 +56,16 @@ export function EvaluationPanel() {
                 <table>
                   <caption className="sr-only">Precision, recall, F1, dan jumlah data untuk setiap kategori</caption>
                   <thead><tr><th scope="col">Sentimen</th><th scope="col">Precision</th><th scope="col">Recall</th><th scope="col">F1</th><th scope="col">Jumlah</th></tr></thead>
-                  <tbody>{report.per_class?.map(row => <tr key={row.label}><th scope="row"><SentimentBadge label={row.label} /></th><td>{percent(row.precision)}</td><td>{percent(row.recall)}</td><td>{percent(row.f1)}</td><td>{number(row.support)}</td></tr>)}</tbody>
+                  <tbody>{report.per_class?.map(row => <tr key={row.label}><th scope="row"><SentimentBadge label={row.label} /></th><td>{percentages.format(row.precision)}</td><td>{percentages.format(row.recall)}</td><td>{percentages.format(row.f1)}</td><td>{number(row.support)}</td></tr>)}</tbody>
                 </table>
               </div>
             </div>
           </div>
+          <div className="evaluation-provenance section-note panel-note"><p>Sumber data: <strong>{report.source_file || report.dataset || (checkpoint ? 'Laporan checkpoint proyek' : 'CSV prediksi hasil notebook')}</strong>.</p>{checkpoint && evaluatedAt && <p>Dievaluasi: <time dateTime={evaluatedAt}>{dates.format(new Date(evaluatedAt))}</time>.</p>}</div>
         </>
       )}
+      </div>
       <details className="evaluation-reading-guide"><summary>Cara membaca metrik evaluasi</summary><dl><div><dt>Akurasi</dt><dd>Proporsi seluruh opini yang sentimennya diklasifikasikan dengan benar.</dd></div><div><dt>Precision</dt><dd>Dari opini yang diprediksi sebagai suatu sentimen, berapa yang labelnya memang sesuai.</dd></div><div><dt>Recall</dt><dd>Dari opini yang memiliki suatu label sentimen, berapa yang berhasil ditemukan model.</dd></div><div><dt>F1 dan Macro F1</dt><dd>F1 merangkum precision dan recall. Macro F1 merata-ratakan F1 ketiga kelas dengan bobot yang sama.</dd></div><div><dt>Jumlah data</dt><dd>Jumlah opini berlabel pada tiap kelas. Ketimpangan jumlah kelas perlu diperhatikan saat membandingkan akurasi dan Macro F1.</dd></div></dl></details>
-      <p className="section-note panel-note">Sumber: {report?.source_file || 'CSV prediksi hasil notebook'}.</p>
     </section>
   );
 }

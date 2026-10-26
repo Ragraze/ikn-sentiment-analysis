@@ -85,7 +85,7 @@ The sidebar provides navigation to five pages:
 | Sentence analysis | `/analysis` | Opinion input, sentiment prediction, and matching topics |
 | Opinion dataset | `/dataset` | Search, filters, pagination, and CSV export |
 | Topic modelling | `/topics` | Keywords, weights, and coherence; project training results are the default source |
-| Model evaluation | `/evaluation` | Classification metrics and confusion matrix |
+| Model evaluation | `/evaluation` | Project checkpoint or notebook metrics, confusion matrix, per-class results, and report provenance |
 
 On small screens, the **Menu** button opens the sidebar. Close it with the close button, Escape, or a click outside the panel. Dashboard charts use actual API data. The dataset split filter updates sentiment proportions, and the selected topic source is carried into the detail page. The comparison chart includes a table with exact values for each bar.
 
@@ -210,7 +210,9 @@ Additional files such as `tokenizer.json`, import metadata, and training history
 
 ## Evaluation and notebook results
 
-The evaluation page uses **notebook results (CSV)** recalculated from `test_with_predictions new.csv`, containing 2,501 opinions. Accuracy is **77.61%**, and Macro F1 is **0.6393**. This source is fixed on the page, without an evaluation-source selector. The figures come from saved research predictions.
+The evaluation page provides **Sumber evaluasi** (Evaluation source) with two choices: **Checkpoint proyek** (Project checkpoint, the default) and **Hasil notebook** (Notebook results). Changing the source updates accuracy, Macro F1, test count, confusion matrix, per-class metrics, and the source file. Checkpoint reports also show their evaluation timestamp when available. Accuracy and per-class percentages use two decimal places, while Macro F1 uses four.
+
+The notebook source recalculates metrics from `test_with_predictions new.csv`, containing 2,501 opinions. Accuracy is **77.61%**, and Macro F1 is **0.6393**. These figures come from saved research predictions. If a checkpoint report is missing or does not match the active model, the page explains its status and offers **Lihat hasil notebook** (View notebook results).
 
 `python scripts/evaluate.py` produces the checkpoint evaluation report and a prediction CSV for the topic modelling pipeline.
 
@@ -231,7 +233,7 @@ The published [checkpoint report](reports/test.json), generated on October 26, 2
 | Neutral F1 | 0.3561 |
 | Negative F1 | 0.8608 |
 
-Prediction rows were verified against the source test TSV, and accuracy, Macro F1, confusion matrix, precision, recall, F1, and support were independently checked with scikit-learn. The report contains a SHA-256 model fingerprint. `GET /api/evaluation?source=checkpoint` returns it only when it matches the installed checkpoint; otherwise, rerun evaluation for that model. The dashboard page continues to display the separately labelled notebook results.
+Prediction rows were verified against the source test TSV, and accuracy, Macro F1, confusion matrix, precision, recall, F1, and support were independently checked with scikit-learn. The report contains a SHA-256 model fingerprint. `GET /api/evaluation?source=checkpoint` returns it only when it matches the installed checkpoint; otherwise, rerun evaluation for that model. Both sources are available through the dashboard selector with separate descriptions and provenance.
 
 `reports/test.json` is versioned in Git. The generated `reports/test_with_predictions.csv` remains local and can be recreated by running evaluation. Model weights remain excluded from the repository.
 
@@ -342,7 +344,7 @@ npm run test:render
 
 Tests cover the original data, notebook outputs, label ordering, cleaning, IndoNLU token truncation, CSV metrics, Flask API contracts, topic reports, and frontend proxy/request behaviour. Topic integration tests use a test double matching the Top2Vec contract to check model selection, caching, unknown vocabulary, invalid cosine values, and sentiment results when Top2Vec is unavailable. Component rendering tests check topic results, fallbacks, escaping, and the distinction between cosine values and percentages. API tests require Flask. Verifying real Top2Vec training and inference requires its dependencies and model artifacts.
 
-`test:render` checks production rendering for all five pages, active sidebar links, page content isolation, topic source selection, per-page CSP nonces, script nonces, and headers without opening a network port. Run it after a build. This check does not replace visual and interaction testing in a browser.
+`test:render` checks production rendering for all five pages, active sidebar links, page content isolation, topic and evaluation source selectors, per-page CSP nonces, script nonces, and headers without opening a network port. Run it after a build. This check does not replace visual and interaction testing in a browser.
 
 Predictions run when **Analisis kalimat** (Analyze sentence) is selected, with a 2,000-character input limit, one active inference per backend process, and 30 attempts per minute per process. Excess requests receive HTTP 429, and a busy model returns HTTP 503. Both responses include `Retry-After`.
 

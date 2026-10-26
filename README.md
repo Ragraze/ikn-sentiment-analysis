@@ -29,7 +29,7 @@ The frontend uses Next.js, React, and TypeScript. The Flask backend runs the mod
 | Sentence analysis | `/analysis` | Three-class sentiment prediction, scores for each class, preprocessed text, and the closest topics within the predicted sentiment |
 | Opinion dataset | `/dataset` | Text search, dataset split and sentiment filters, pagination, expandable opinion text, and CSV export |
 | Topic modelling | `/topics` | Topics grouped by sentiment, keywords, word weights where available, and coherence scores from notebook outputs or project training |
-| Model evaluation | `/evaluation` | Accuracy, Macro F1, confusion matrix, precision, recall, F1, and support calculated from the notebook prediction CSV |
+| Model evaluation | `/evaluation` | Select project checkpoint or notebook results to view accuracy, Macro F1, confusion matrix, precision, recall, F1, and support |
 
 The content area uses a cream white palette with sage accents. The sidebar appears on desktop and becomes a collapsible menu on mobile. Charts and summaries use API data.
 
@@ -125,7 +125,7 @@ Across the original CSVs, the label distribution is **8,734 negative**, **1,846 
 
 The exploration CSVs contain `text` and `label` columns. Preprocessed TSVs contain two columns without a header: text and label. The research prediction CSVs contain `text`, `sentiment`, and `sentiment_predict` columns.
 
-The evaluation page recalculates historical metrics from [test_with_predictions new.csv](<data/predictions/test_with_predictions new.csv>), which contains 2,501 opinions. The installed checkpoint was evaluated separately on the 2,501-row preprocessed test split:
+The notebook source on the evaluation page recalculates historical metrics from [test_with_predictions new.csv](<data/predictions/test_with_predictions new.csv>), which contains 2,501 opinions. The installed checkpoint was evaluated separately on the 2,501-row preprocessed test split:
 
 | Metric | Historical notebook CSV | Installed checkpoint |
 | --- | ---: | ---: |
@@ -137,7 +137,9 @@ The evaluation page recalculates historical metrics from [test_with_predictions 
 
 The [checkpoint evaluation report](dashboard/reports/test.json) records the run timestamp, dataset, preprocessing profile, label order, confusion matrix, per-class metrics, and model fingerprint. This run used CPU inference with batch size 8 and a maximum sequence length of 512 tokens on October 26, 2026. Prediction rows were checked against the test TSV, and metrics were independently verified with scikit-learn.
 
-The dashboard evaluation page displays the historical notebook results. To retrieve the installed checkpoint's report, use `GET /api/evaluation?source=checkpoint`. The API serves it only when its fingerprint matches the installed checkpoint. Replacing the checkpoint requires running `scripts/evaluate.py` again. Neutral-class recall in this checkpoint evaluation is 27.05%, so read per-class metrics alongside overall accuracy.
+The dashboard evaluation page defaults to **Checkpoint proyek** (Project checkpoint). Use **Sumber evaluasi** (Evaluation source) to switch to **Hasil notebook** (Notebook results). All metrics, the confusion matrix, per-class results, and the data source update for the selected report. Checkpoint results also show the evaluation timestamp when available. An unavailable checkpoint report is explained explicitly, with an option to open notebook results.
+
+The checkpoint report is also available through `GET /api/evaluation?source=checkpoint`. The API serves it only when its fingerprint matches the installed checkpoint. Replacing the checkpoint requires running `scripts/evaluate.py` again. Neutral-class recall in this checkpoint evaluation is 27.05%, so read per-class metrics alongside overall accuracy.
 
 See the [data guide](data/README.md) and [notebook guide](notebooks/README.md) for source locations and the experiment workflow.
 

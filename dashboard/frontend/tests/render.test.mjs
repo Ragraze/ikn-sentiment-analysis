@@ -74,8 +74,9 @@ async function verifyRendering() {
     if (pathname === '/evaluation') {
       assert.ok(body.includes('Cara membaca metrik evaluasi'));
       assert.ok(body.includes('Hasil notebook'));
-      assert.ok(!body.includes('id="evaluation-source"'));
-      assert.ok(!body.includes('Checkpoint aktif'));
+      assert.ok(body.includes('id="evaluation-source"'));
+      assert.ok(body.includes('<option value="checkpoint" selected=""'), 'evaluation defaults to the project checkpoint');
+      assert.ok(body.includes('<option value="notebook"'), 'historical notebook evaluation remains selectable');
     }
     socket.destroy();
     return nonce;

@@ -36,6 +36,7 @@ export type Evaluation = {
   message?: string;
   source_file?: string;
   dataset?: string;
+  evaluated_at?: string;
   count?: number;
   accuracy?: number;
   macro_f1?: number;

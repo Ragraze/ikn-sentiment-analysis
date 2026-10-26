@@ -113,6 +113,7 @@ SCHEMAS = {
     }, ('label', 'precision', 'recall', 'f1', 'support')),
     'Evaluation': obj({
         'available': BOOLEAN, 'message': STRING, 'source': STRING, 'source_file': STRING,
+        'dataset': STRING, 'evaluated_at': {'type': 'string', 'format': 'date-time'},
         'count': COUNT, 'accuracy': SCORE, 'macro_f1': SCORE,
         'labels': array(ref('Sentiment')), 'confusion': array(array(COUNT)),
         'per_class': array(ref('ClassMetrics')), 'model_fingerprint': STRING,
