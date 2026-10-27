@@ -15,4 +15,6 @@ COPY run.py ./run.py
 RUN useradd --create-home app && chown -R app:app /app
 USER app
 EXPOSE 5000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+    CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/api/health', timeout=4).read()"]
 CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "1", "--threads", "4", "--timeout", "180", "run:app"]

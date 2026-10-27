@@ -39,6 +39,15 @@ class ApiSecurityTests(unittest.TestCase):
         self.assertEqual(self.client.get('/api/summary', headers={'Host': 'other.example'}).status_code, 400)
         self.assertEqual(self.client.post('/api/predict', json={'text': 'Opini IKN'}, headers={'Origin': 'http://localhost:3000'}).status_code, 200)
 
+    def test_loopback_frontend_aliases_use_only_the_configured_port(self):
+        client = create_app({**self.config, 'FRONTEND_URL': 'http://127.0.0.1:3001'}, predictor=Predictor()).test_client()
+        for origin in ('http://localhost:3001', 'http://127.0.0.1:3001', 'http://[::1]:3001'):
+            self.assertEqual(client.post('/api/predict', json={'text': 'Opini IKN'}, headers={'Origin': origin}).status_code, 200)
+        for origin in ('http://localhost:3000', 'http://localhost:3002', 'https://localhost:3001', 'http://other.example:3001'):
+            self.assertEqual(client.post('/api/predict', json={'text': 'Opini IKN'}, headers={'Origin': origin}).status_code, 403)
+        remote = create_app({**self.config, 'FRONTEND_URL': 'https://dashboard.example'}, predictor=Predictor()).test_client()
+        self.assertEqual(remote.post('/api/predict', json={'text': 'Opini IKN'}, headers={'Origin': 'http://localhost:3001'}).status_code, 403)
+
     def test_large_or_malformed_input_is_rejected_before_inference(self):
         response = self.client.post('/api/predict', json={'text': 'x' * 20_000})
         self.assertEqual(response.status_code, 413)

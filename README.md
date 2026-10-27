@@ -70,45 +70,37 @@ The browser accesses `/api/*` through the frontend origin, and Next.js forwards 
 | API documentation | OpenAPI `3.0.3` and Swagger UI |
 | Testing | Python `unittest`, the Node.js test runner, TypeScript, and production rendering checks |
 
-Backend dependencies are listed in [requirements.txt](dashboard/requirements.txt), Top2Vec dependencies in [requirements-topics.txt](dashboard/requirements-topics.txt), and frontend versions in [package.json](dashboard/frontend/package.json) and its lockfile.
+Backend dependencies are listed in [requirements.txt](backend/requirements.txt), Top2Vec dependencies in [requirements-topics.txt](backend/requirements-topics.txt), and frontend versions in [package.json](frontend/package.json) and its lockfile.
 
 ## Repository structure
 
 ```text
 ikn-sentiment-analysis/
-├── README.md
-├── Makefile
+├── LICENSE                 # MIT license for application code
+├── Makefile                # Development, checks, and Docker commands
+├── compose.yaml            # Frontend and backend services
+├── frontend/               # Next.js, React, TypeScript, and frontend tests
+├── backend/
+│   ├── README.md            # Application and research pipeline guide
+│   ├── config/              # Primary notebook configuration
+│   ├── server/              # Flask API, inference, data, and OpenAPI
+│   ├── scripts/             # Setup, import, training, and evaluation
+│   ├── tests/               # Backend tests
+│   ├── models/              # Local checkpoints, excluded from Git
+│   ├── reports/             # Evaluation and generated outputs
+│   ├── notebook_export.py
+│   ├── requirements.txt
+│   ├── requirements-topics.txt
+│   └── run.py
 ├── data/
-│   ├── raw/                 # Labelled opinion CSVs for exploration
-│   ├── processed/           # TSV inputs for IndoBERT training and evaluation
-│   ├── external/            # Slang and stopword dictionaries
-│   └── predictions/         # Saved research prediction CSVs
-├── notebooks/
-│   ├── Preprocessing_Datasets_IKN.ipynb
-│   ├── Sentimen_Analysis_IKN_IndoBERT.ipynb
-│   └── Topic_Modelling_of_IKN.ipynb
-└── dashboard/
-    ├── README.md            # Application and research pipeline guide
-    ├── config/              # Configuration from the primary notebook run
-    ├── frontend/
-    │   ├── src/app/         # Routes, layout, and stylesheets
-    │   ├── src/components/  # Shared components and navigation
-    │   ├── src/features/    # Page features
-    │   ├── src/hooks/       # API resource fetching
-    │   ├── src/lib/         # Data contracts and utilities
-    │   └── tests/           # API client, topic, and rendering tests
-    ├── server/              # Flask, preprocessing, inference, data, and OpenAPI
-    ├── scripts/             # Setup, checkpoint import, training, and evaluation
-    ├── tests/               # Backend tests
-    ├── models/              # Local checkpoints; contents ignored by Git
-    ├── reports/             # Published checkpoint evaluation and local outputs
-    ├── notebook_export.py   # Model export from a notebook runtime
-    ├── requirements.txt
-    ├── requirements-topics.txt
-    └── run.py               # Backend entrypoint
+│   ├── raw/                 # Labelled opinion CSVs
+│   ├── processed/           # Training and evaluation TSVs
+│   ├── external/            # Preprocessing dictionaries
+│   └── predictions/         # Saved research predictions
+└── notebooks/              # Original research notebooks
 ```
 
-Checkpoints, generated prediction CSVs, caches, virtual environments, `node_modules`, Next.js builds, and `.env.local` configuration are excluded from GitHub. The checkpoint evaluation report at `dashboard/reports/test.json` is versioned with the project. Other generated reports remain local. A fresh clone requires its own model setup.
+Checkpoints, generated prediction CSVs, caches, virtual environments, `node_modules`, Next.js builds, and `.env.local` configuration are excluded from GitHub. The checkpoint evaluation report at `backend/reports/test.json` is versioned with the project. Other generated reports remain local. A fresh clone requires its own model setup.
 
 ## Datasets and research results
 
@@ -135,7 +127,7 @@ The notebook source on the evaluation page recalculates historical metrics from 
 | Neutral F1 | 0.4098 | 0.3561 |
 | Negative F1 | 0.8627 | 0.8608 |
 
-The [checkpoint evaluation report](dashboard/reports/test.json) records the run timestamp, dataset, preprocessing profile, label order, confusion matrix, per-class metrics, and model fingerprint. This run used CPU inference with batch size 8 and a maximum sequence length of 512 tokens on October 26, 2026. Prediction rows were checked against the test TSV, and metrics were independently verified with scikit-learn.
+The [checkpoint evaluation report](backend/reports/test.json) records the run timestamp, dataset, preprocessing profile, label order, confusion matrix, per-class metrics, and model fingerprint. This run used CPU inference with batch size 8 and a maximum sequence length of 512 tokens on October 26, 2026. Prediction rows were checked against the test TSV, and metrics were independently verified with scikit-learn.
 
 The dashboard evaluation page defaults to **Checkpoint proyek** (Project checkpoint). Use **Sumber evaluasi** (Evaluation source) to switch to **Hasil notebook** (Notebook results). All metrics, the confusion matrix, per-class results, and the data source update for the selected report. Checkpoint results also show the evaluation timestamp when available. An unavailable checkpoint report is explained explicitly, with an option to open notebook results.
 
@@ -167,7 +159,7 @@ cd ikn-sentiment-analysis
 From the repository root, run the following in the first terminal:
 
 ```bash
-cd dashboard
+cd backend
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
@@ -186,7 +178,7 @@ On Linux/WSL, `bash scripts/setup_backend.sh` is available as an alternative. It
 Open a second terminal at the repository root:
 
 ```bash
-cd dashboard/frontend
+cd frontend
 npm ci
 npm run dev
 ```
@@ -215,11 +207,38 @@ make backend
 make frontend
 ```
 
-Without `make`, run `dashboard/.venv/bin/python dashboard/run.py` for the backend and `npm --prefix dashboard/frontend run dev` for the frontend.
+Without `make`, run `backend/.venv/bin/python backend/run.py` for the backend and `npm --prefix frontend run dev` for the frontend.
+
+## Docker
+
+Run from the repository root:
+
+```bash
+docker compose build
+docker compose up -d
+```
+
+Open http://localhost:3000 and http://localhost:3000/api/docs for Swagger.
+Only the frontend port is published, bound to loopback by default. Compose waits
+for the backend health check before starting the frontend. Dataset and notebook
+folders are mounted read-only; local checkpoints in `backend/models/` are copied
+into the image. Prepare the checkpoints before building to enable predictions.
+A fresh GitHub clone does not include model weights.
+
+If port 3000 is busy, use the same port for publishing and origin validation:
+
+```bash
+FRONTEND_PORT=3002 FRONTEND_URL=http://localhost:3002 docker compose up -d
+```
+
+The configured local frontend accepts `localhost`, `127.0.0.1`, and `[::1]` on
+that port. Other schemes and ports remain restricted. `FRONTEND_URL` is the
+browser origin; `FLASK_API_URL` is the internal backend origin. Rebuild the
+frontend when changing its proxy destination. Stop with `docker compose down`.
 
 ## Model setup
 
-Run all commands in this section from `dashboard/` with the virtual environment active. For IndoBERT, either import an existing fine-tuned checkpoint or train a new one; only one of these steps is needed.
+Run all commands in this section from `backend/` with the virtual environment active. For IndoBERT, either import an existing fine-tuned checkpoint or train a new one; only one of these steps is needed.
 
 ### Import an IndoBERT checkpoint from Colab
 
@@ -231,7 +250,7 @@ python scripts/import_checkpoint.py models/indobert_model_3e6.zip
 
 The script installs the checkpoint into `models/indobert-ikn/`, checks the three-class classifier weights, normalizes the label configuration, and creates `serving.json`. An existing non-empty destination is not overwritten. To install another checkpoint, use `--output models/model-lain` and update `INDOBERT_MODEL_DIR`.
 
-The checkpoint must contain a fine-tuned classifier rather than only a pretrained backbone. If the trained model is still available in the notebook runtime, follow the [Colab runtime export guide](dashboard/README.md#exporting-from-a-trained-notebook-runtime).
+The checkpoint must contain a fine-tuned classifier rather than only a pretrained backbone. If the trained model is still available in the notebook runtime, follow the [Colab runtime export guide](backend/README.md#exporting-from-a-trained-notebook-runtime).
 
 ### Train IndoBERT on the project dataset
 
@@ -240,7 +259,7 @@ python scripts/train.py
 python scripts/evaluate.py
 ```
 
-Defaults come from [config/notebook.json](dashboard/config/notebook.json):
+Defaults come from [config/notebook.json](backend/config/notebook.json):
 
 | Parameter | Default |
 | --- | --- |
@@ -364,12 +383,12 @@ The defaults are sufficient for local use. Backend variables are read from the p
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `INDOBERT_MODEL_DIR` | `dashboard/models/indobert-ikn/` | Fine-tuned IndoBERT checkpoint |
+| `INDOBERT_MODEL_DIR` | `backend/models/indobert-ikn/` | Fine-tuned IndoBERT checkpoint |
 | `INDOBERT_DEVICE` | `cpu` | Serving device and default evaluation device |
 | `IKN_DATA_DIR` | `data/` | Dataset directory containing `raw`, `processed`, `external`, and `predictions` |
 | `IKN_NOTEBOOKS_DIR` | `notebooks/` | Original notebooks and saved outputs |
-| `TOP2VEC_MODEL_DIR` | `dashboard/models/top2vec/` | Top2Vec models for each sentiment |
-| `TOP2VEC_REPORT_DIR` | `dashboard/reports/` | Directory containing `topics.json` |
+| `TOP2VEC_MODEL_DIR` | `backend/models/top2vec/` | Top2Vec models for each sentiment |
+| `TOP2VEC_REPORT_DIR` | `backend/reports/` | Directory containing `topics.json` |
 | `PORT` | `5000` | Backend port used by `run.py` |
 | `FRONTEND_URL` | `http://localhost:3000` | Frontend origin allowed to submit predictions |
 | `IKN_TRUSTED_HOSTS` | `localhost,127.0.0.1,[::1]` | Comma-separated list of allowed backend hosts |
@@ -377,13 +396,13 @@ The defaults are sufficient for local use. Backend variables are read from the p
 
 Default paths above are resolved from the repository location. Use absolute paths for custom settings so they do not depend on the terminal's working directory.
 
-For example, to run the backend on port 5001, from `dashboard/`:
+For example, to run the backend on port 5001, from `backend/`:
 
 ```bash
 PORT=5001 .venv/bin/python run.py
 ```
 
-In the frontend terminal, from `dashboard/frontend/`:
+In the frontend terminal, from `frontend/`:
 
 ```bash
 cp .env.example .env.local
@@ -410,7 +429,7 @@ make build
 
 | Command from the repository root | Purpose |
 | --- | --- |
-| `make backend` | Run Flask with `dashboard/.venv/bin/python` |
+| `make backend` | Run Flask with `backend/.venv/bin/python` |
 | `make frontend` | Start the Next.js development server |
 | `make test-backend` | Run Python unittest |
 | `make test-frontend` | Check TypeScript and run frontend tests |
@@ -420,11 +439,11 @@ make build
 Use `make PYTHON=python3 test-backend` to select another interpreter with the required dependencies. Manual commands, including the production rendering check:
 
 ```bash
-dashboard/.venv/bin/python -m unittest discover -s dashboard/tests -v
-npm --prefix dashboard/frontend run typecheck
-npm --prefix dashboard/frontend test
-npm --prefix dashboard/frontend run build
-npm --prefix dashboard/frontend run test:render
+backend/.venv/bin/python -m unittest discover -s backend/tests -v
+npm --prefix frontend run typecheck
+npm --prefix frontend test
+npm --prefix frontend run build
+npm --prefix frontend run test:render
 ```
 
 Tests cover data loading, notebook outputs, preprocessing, label ordering, tokenization, metric calculations, API contracts, OpenAPI, request limits, CSV export, and topic matching. Rendering checks verify all five routes, sidebar navigation, the mobile dialog, and production CSP headers and nonces.
@@ -434,8 +453,8 @@ Automated tests use test doubles for some model components. These checks do not 
 To run the production frontend build from the repository root:
 
 ```bash
-npm --prefix dashboard/frontend run build
-npm --prefix dashboard/frontend start
+npm --prefix frontend run build
+npm --prefix frontend start
 ```
 
 Run the backend separately. `run.py` binds to `127.0.0.1` and uses Flask's built-in server for local use. Public deployment requires an appropriate WSGI server, reverse proxy, origin, and host configuration.
@@ -447,7 +466,7 @@ Run the backend separately. `run.py` binds to `127.0.0.1` and uses Flask's built
 | Dashboard cannot load data | Confirm Flask is running, open `/api/summary` directly, and check `FLASK_API_URL` and the backend port |
 | Prediction fails with `model_unavailable` | Check `INDOBERT_MODEL_DIR`, `serving.json`, safetensors weights, tokenizer files, and backend logs; install a fine-tuned checkpoint and restart |
 | IndoBERT status remains `configured` | The checkpoint has been detected, but the model is loaded only on the first prediction; this state differs from `ready` |
-| Missing `punkt_tab` or `words` resource | Run `python scripts/setup_nltk.py` from `dashboard/` using the same interpreter as the backend |
+| Missing `punkt_tab` or `words` resource | Run `python scripts/setup_nltk.py` from `backend/` using the same interpreter as the backend |
 | Project topic results are unavailable | Train Top2Vec to create `reports/topics.json`, or select **Hasil notebook** (Notebook results) for historical outputs |
 | Sentiment is returned, but no topic matches | Check Top2Vec status and vocabulary, and try a more complete IKN opinion; some sentences have no matching topic |
 | Top2Vec reports `missing_dependency` | Install `requirements-topics.txt` in the backend environment and restart |
@@ -473,10 +492,18 @@ Frontend requests time out after one minute. The first prediction may take longe
 
 ## Further documentation
 
-- [Application guide](dashboard/README.md): installation, checkpoint import, Colab export, preprocessing/tokenization, training, evaluation, and Top2Vec.
+- [Application guide](backend/README.md): installation, checkpoint import, Colab export, preprocessing/tokenization, training, evaluation, and Top2Vec.
 - [Dataset guide](data/README.md): research source file locations.
 - [Notebook guide](notebooks/README.md): preprocessing, sentiment analysis, and topic modelling workflow.
-- [Notebook configuration](dashboard/config/notebook.json): primary-run parameters used by the CLI.
-- [OpenAPI definition](dashboard/server/openapi.py): endpoint schemas and contracts served through Swagger.
+- [Notebook configuration](backend/config/notebook.json): primary-run parameters used by the CLI.
+- [OpenAPI definition](backend/server/openapi.py): endpoint schemas and contracts served through Swagger.
 
-Technology references are listed in the [application guide's references](dashboard/README.md#references).
+Technology references are listed in the [application guide's references](backend/README.md#references).
+
+## License
+
+Application source code and its documentation are available under the
+[MIT License](LICENSE), copyright 2026 Ragraze. The files under `data/`,
+`notebooks/`, model checkpoints, and generated research artifacts are outside
+the scope of this application license. Their original source terms still apply.
+Third-party libraries and pretrained backbones retain their own licenses.

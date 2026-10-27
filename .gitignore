@@ -10,9 +10,11 @@ node_modules/
 *.tsbuildinfo
 .DS_Store
 .agents/
+.agent/
+.codex/
 .aws/
-dashboard/models/*
-!dashboard/models/.gitkeep
-dashboard/reports/*
-!dashboard/reports/.gitkeep
-!dashboard/reports/test.json
+backend/models/*
+!backend/models/.gitkeep
+backend/reports/*
+!backend/reports/.gitkeep
+!backend/reports/test.json

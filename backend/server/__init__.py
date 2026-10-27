@@ -52,13 +52,17 @@ def create_app(config=None, predictor=None, topic_predictor=None):
     frontend_origin = origin_of(app.config['FRONTEND_URL'])
     if frontend_origin is None:
         raise ValueError('FRONTEND_URL harus berupa URL HTTP atau HTTPS yang valid.')
+    frontend_origins = {frontend_origin}
+    if frontend_origin[1] in ('localhost', '127.0.0.1', '::1'):
+        frontend_origins.update((frontend_origin[0], host, frontend_origin[2])
+                                for host in ('localhost', '127.0.0.1', '::1'))
 
     @app.before_request
     def validate_origin():
         if request.method == 'POST' and request.path.startswith('/api/'):
             origin = request.headers.get('Origin')
             if request.headers.get('Sec-Fetch-Site') == 'cross-site' or (
-                origin and origin_of(origin) not in (frontend_origin, origin_of(request.host_url))
+                origin and origin_of(origin) not in frontend_origins | {origin_of(request.host_url)}
             ):
                 return jsonify(error='Asal permintaan tidak diizinkan.'), 403
 

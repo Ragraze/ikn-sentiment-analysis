@@ -52,4 +52,4 @@ result = prediction.get_json()
 print(f"Dataset: {summary.get_json()['total']} opini; prediksi IndoBERT: {result['label']} ({result['confidence']:.2%}).")
 PY
 
-printf '\n%s\n' 'Backend siap. Jalankan dari folder dashboard: .venv/bin/python run.py'
+printf '\n%s\n' 'Backend siap. Jalankan dari folder backend: .venv/bin/python run.py'

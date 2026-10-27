@@ -35,7 +35,7 @@ Use Python 3.11 or 3.12, Node.js >= 20.9, and an internet connection for depende
 On Linux/WSL, if a checkpoint or notebook export is already installed at the default location, backend setup can be run with one command:
 
 ```bash
-cd dashboard
+cd backend
 bash scripts/setup_backend.sh
 .venv/bin/python run.py
 ```
@@ -47,7 +47,7 @@ For manual installation, use the following steps.
 Start the backend in the first terminal:
 
 ```bash
-cd dashboard
+cd backend
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
@@ -55,10 +55,10 @@ python scripts/setup_nltk.py
 python run.py
 ```
 
-Start the frontend in the second terminal:
+Start the frontend in the second terminal, from the repository root:
 
 ```bash
-cd dashboard/frontend
+cd frontend
 npm ci
 npm run dev
 ```
@@ -67,15 +67,15 @@ Open **http://localhost:3000** for the dashboard. The backend API runs at **http
 
 ## Docker
 
-From the `dashboard` directory, run:
+From the repository root, run:
 
 ```bash
 docker compose up --build -d
 ```
 
-Open http://localhost:3000. Compose runs the Next.js frontend and a CPU backend with Gunicorn and Top2Vec dependencies. Only the frontend port is published; API requests are forwarded internally to the backend. Dataset and notebook folders from the repository are mounted read-only. Local model files in `models/` are copied into the backend image; install checkpoints before building for sentence prediction, and rebuild after replacing them. Missing checkpoints do not prevent dataset exploration.
+Open http://localhost:3000. Compose runs the Next.js frontend and a CPU backend with Gunicorn and Top2Vec dependencies. Only the frontend port is published; API requests are forwarded internally to the backend. Dataset and notebook folders from the repository are mounted read-only. Local model files in `backend/models/` are copied into the backend image; install checkpoints before building for sentence prediction, and rebuild after replacing them. Missing checkpoints do not prevent dataset exploration.
 
-For access through another hostname, set `FRONTEND_URL` to the browser's origin before starting Compose, for example `FRONTEND_URL=http://192.168.1.10:3000 docker compose up -d`. The first build downloads dependencies and NLTK resources. Stop the services with `docker compose down`.
+For a different local port, set both `FRONTEND_PORT` and `FRONTEND_URL`, for example `FRONTEND_PORT=3002 FRONTEND_URL=http://localhost:3002 docker compose up -d`. The published port is bound to loopback. The first build downloads dependencies and NLTK resources. Stop the services with `docker compose down`.
 
 ## API documentation
 
@@ -109,7 +109,7 @@ For the production frontend, run `npm run build` followed by `npm start`. To cha
 
 Training is needed only when preparing or replacing a model. For subsequent use, start the backend and frontend without retraining. Dataset summaries and historical notebook results remain available before a checkpoint is installed. The prediction panel reports the actual model status.
 
-If no checkpoint is available, run the following from `dashboard/` after installation:
+If no checkpoint is available, run the following from `backend/` after installation:
 
 ```bash
 python scripts/setup_nltk.py
@@ -200,7 +200,7 @@ export_checkpoint(
 )
 ```
 
-Copy the entire export directory to `dashboard/models/indobert-ikn/`. The original notebook uses the names `model`, `tokenizer`, and `i2w`. The default backbone variant, preprocessing profile, and token length match the notebook.
+Copy the entire export directory to `backend/models/indobert-ikn/`. The original notebook uses the names `model`, `tokenizer`, and `i2w`. The default backbone variant, preprocessing profile, and token length match the notebook.
 
 The notebook overwrites `model` in each tuning scenario. Export immediately after the chosen scenario, before starting another one. The export includes `config.json`, `model.safetensors`, tokenizer files, and `serving.json`.
 
@@ -305,21 +305,16 @@ Topic matching follows the [official Top2Vec query_topics API](https://top2vec.r
 ## Application structure
 
 ```text
-dashboard/
-  frontend/           # Next.js App Router, React, TypeScript
-    src/
-      app/
-      features/
-      components/
-      hooks/
-      lib/
-    tests/
-  server/             # Flask API, IndoBERT inference, datasets, and Top2Vec results
-  scripts/            # IndoBERT and Top2Vec training/evaluation
-  config/             # Configuration taken from the notebook
-  models/             # IndoBERT checkpoints and Top2Vec models
-  reports/            # Evaluation, prediction CSVs, and topic reports
+frontend/             # Next.js App Router, React, TypeScript, and tests
+backend/
+  server/             # Flask API, inference, datasets, and Top2Vec results
+  scripts/            # Setup, training, import, and evaluation
+  config/             # Primary notebook configuration
+  tests/              # Backend tests
+  models/             # Local IndoBERT and Top2Vec checkpoints
+  reports/            # Evaluation and generated reports
   run.py              # Flask entrypoint
+compose.yaml          # Docker services, run from the repository root
 ```
 
 The IndoBERT checkpoint directory is `models/indobert-ikn/`.
@@ -332,12 +327,12 @@ The backend reads variables from the process environment and does not automatica
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `INDOBERT_MODEL_DIR` | `dashboard/models/indobert-ikn` | Fine-tuned checkpoint |
+| `INDOBERT_MODEL_DIR` | `backend/models/indobert-ikn` | Fine-tuned checkpoint |
 | `IKN_DATA_DIR` | `data/` at the repository root | Contains `raw/`, `processed/`, `external/`, and `predictions/` |
 | `IKN_NOTEBOOKS_DIR` | `notebooks/` at the repository root | Original notebooks and saved topic outputs |
 | `INDOBERT_DEVICE` | `cpu` | Serving device: `cpu` or `cuda` |
-| `TOP2VEC_MODEL_DIR` | `dashboard/models/top2vec` | Three local Top2Vec models; also used by the training CLI |
-| `TOP2VEC_REPORT_DIR` | `dashboard/reports` | Directory containing `topics.json`; also used by the training CLI |
+| `TOP2VEC_MODEL_DIR` | `backend/models/top2vec` | Three local Top2Vec models; also used by the training CLI |
+| `TOP2VEC_REPORT_DIR` | `backend/reports` | Directory containing `topics.json`; also used by the training CLI |
 | `PORT` | `5000` | Local Flask port |
 | `FRONTEND_URL` | `http://localhost:3000` | Frontend origin allowed to submit predictions |
 | `IKN_TRUSTED_HOSTS` | `localhost,127.0.0.1,[::1]` | Comma-separated list of accepted backend hosts |
@@ -347,7 +342,7 @@ The backend reads variables from the process environment and does not automatica
 
 ```bash
 python -m unittest discover -s tests -v
-cd frontend
+cd ../frontend
 npm run typecheck
 npm test
 npm run build

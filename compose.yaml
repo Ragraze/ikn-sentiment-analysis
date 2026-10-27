@@ -1,24 +1,27 @@
 services:
   backend:
-    build: .
+    image: ikn-sentiment-backend:latest
+    build: ./backend
     environment:
       IKN_DATA_DIR: /data
       IKN_NOTEBOOKS_DIR: /notebooks
       IKN_TRUSTED_HOSTS: localhost,127.0.0.1,backend
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
     volumes:
-      - ../data:/data:ro
-      - ../notebooks:/notebooks:ro
+      - ./data:/data:ro
+      - ./notebooks:/notebooks:ro
     expose:
       - "5000"
     restart: unless-stopped
   frontend:
+    image: ikn-sentiment-frontend:latest
     build:
       context: ./frontend
       args:
         FLASK_API_URL: http://backend:5000
     ports:
-      - "3000:3000"
+      - "127.0.0.1:${FRONTEND_PORT:-3000}:3000"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     restart: unless-stopped

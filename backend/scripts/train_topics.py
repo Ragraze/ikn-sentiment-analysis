@@ -58,7 +58,7 @@ def main():
         from gensim.corpora import Dictionary
         from gensim.models import CoherenceModel
     except ImportError:
-        parser.error('Dependensi Top2Vec belum lengkap. Jalankan python -m pip install -r requirements-topics.txt dari folder dashboard.')
+        parser.error('Dependensi Top2Vec belum lengkap. Jalankan python -m pip install -r requirements-topics.txt dari folder backend.')
     nltk.data.path.insert(0, str(APP / '.cache/nltk'))
     word_tokenize('periksa resource tokenizer')
     results = {}

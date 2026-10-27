@@ -9,6 +9,6 @@ Source files retain their original names and contents so they can be traced back
 | `external/` | Indonesian slang and stopword dictionaries | Preprocessing new sentences |
 | `predictions/` | Saved notebook prediction CSVs | Historical evaluation and Top2Vec input |
 
-Application-generated outputs are saved in `dashboard/reports/`, separately from source data. Checkpoints are stored in `dashboard/models/`.
+Application-generated outputs are saved in `backend/reports/`, separately from source data. Checkpoints are stored in `backend/models/`.
 
 Set `IKN_DATA_DIR` to use another data directory with the same structure. Flat directories from older integrations are also supported. Notebook locations are configured separately through `IKN_NOTEBOOKS_DIR`.
